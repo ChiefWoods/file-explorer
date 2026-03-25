@@ -11,3 +11,130 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+
+  folders         Folder[]
+  files           File[]
+  shareLinksCreated ShareLink[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                   String    @id
+  userId               String
+  accountId            String
+  providerId           String
+  accessToken          String?
+  refreshToken         String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                String?
+  idToken              String?
+  password             String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([providerId, accountId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
+// --- File Uploader app ---
+
+model Folder {
+  id        String   @id @default(cuid())
+  userId    String
+  parentId  String?
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children Folder[] @relation("FolderHierarchy")
+
+  files      File[]
+  shareLinks ShareLink[]
+
+  @@index([userId])
+  @@index([parentId])
+  // Postgres treats NULL as distinct in UNIQUE; duplicate root names are possible—enforce in app if needed.
+  @@unique([userId, parentId, name])
+  @@map("folder")
+}
+
+model File {
+  id                 String   @id @default(cuid())
+  userId             String
+  folderId           String
+  name               String
+  mimeType           String
+  bytes              Int
+  cloudinaryPublicId String
+  resourceType       String   @default("auto") // e.g. image | raw — align with Cloudinary
+  secureUrl          String   @db.Text
+  createdAt          DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([folderId])
+  @@map("file")
+}
+
+model ShareLink {
+  id              String   @id @default(cuid())
+  token           String   @unique
+  folderId        String
+  createdByUserId String
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+
+  folder    Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  createdBy User   @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  @@index([folderId])
+  @@map("share_link")
+}
