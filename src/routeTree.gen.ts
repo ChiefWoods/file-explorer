@@ -11,7 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as DriveRouteImport } from './routes/drive'
+import { Route as ApiShareTokenRouteImport } from './routes/api/share/$token'
+import { Route as ApiDriveUploadsRouteImport } from './routes/api/drive/uploads'
+import { Route as ApiDriveShareRouteImport } from './routes/api/drive/share'
+import { Route as ApiDriveFoldersRouteImport } from './routes/api/drive/folders'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiDriveFoldersFolderIdRouteImport } from './routes/api/drive/folders/$folderId'
+import { Route as ApiDriveFilesFileIdRouteImport } from './routes/api/drive/files/$fileId'
 
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
@@ -23,9 +29,39 @@ const DriveRoute = DriveRouteImport.update({
   path: '/drive',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShareTokenRoute = ApiShareTokenRouteImport.update({
+  id: '/api/share/$token',
+  path: '/api/share/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDriveUploadsRoute = ApiDriveUploadsRouteImport.update({
+  id: '/api/drive/uploads',
+  path: '/api/drive/uploads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDriveShareRoute = ApiDriveShareRouteImport.update({
+  id: '/api/drive/share',
+  path: '/api/drive/share',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDriveFoldersRoute = ApiDriveFoldersRouteImport.update({
+  id: '/api/drive/folders',
+  path: '/api/drive/folders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDriveFoldersFolderIdRoute = ApiDriveFoldersFolderIdRouteImport.update({
+  id: '/$folderId',
+  path: '/$folderId',
+  getParentRoute: () => ApiDriveFoldersRoute,
+} as any)
+const ApiDriveFilesFileIdRoute = ApiDriveFilesFileIdRouteImport.update({
+  id: '/api/drive/files/$fileId',
+  path: '/api/drive/files/$fileId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -33,30 +69,81 @@ export interface FileRoutesByFullPath {
   '/drive': typeof DriveRoute
   '/sign-in': typeof SignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/drive/folders': typeof ApiDriveFoldersRouteWithChildren
+  '/api/drive/share': typeof ApiDriveShareRoute
+  '/api/drive/uploads': typeof ApiDriveUploadsRoute
+  '/api/share/$token': typeof ApiShareTokenRoute
+  '/api/drive/files/$fileId': typeof ApiDriveFilesFileIdRoute
+  '/api/drive/folders/$folderId': typeof ApiDriveFoldersFolderIdRoute
 }
 export interface FileRoutesByTo {
   '/drive': typeof DriveRoute
   '/sign-in': typeof SignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/drive/folders': typeof ApiDriveFoldersRouteWithChildren
+  '/api/drive/share': typeof ApiDriveShareRoute
+  '/api/drive/uploads': typeof ApiDriveUploadsRoute
+  '/api/share/$token': typeof ApiShareTokenRoute
+  '/api/drive/files/$fileId': typeof ApiDriveFilesFileIdRoute
+  '/api/drive/folders/$folderId': typeof ApiDriveFoldersFolderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/drive': typeof DriveRoute
   '/sign-in': typeof SignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/drive/folders': typeof ApiDriveFoldersRouteWithChildren
+  '/api/drive/share': typeof ApiDriveShareRoute
+  '/api/drive/uploads': typeof ApiDriveUploadsRoute
+  '/api/share/$token': typeof ApiShareTokenRoute
+  '/api/drive/files/$fileId': typeof ApiDriveFilesFileIdRoute
+  '/api/drive/folders/$folderId': typeof ApiDriveFoldersFolderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/drive' | '/sign-in' | '/api/auth/$'
+  fullPaths:
+    | '/drive'
+    | '/sign-in'
+    | '/api/auth/$'
+    | '/api/drive/folders'
+    | '/api/drive/share'
+    | '/api/drive/uploads'
+    | '/api/share/$token'
+    | '/api/drive/files/$fileId'
+    | '/api/drive/folders/$folderId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/drive' | '/sign-in' | '/api/auth/$'
-  id: '__root__' | '/drive' | '/sign-in' | '/api/auth/$'
+  to:
+    | '/drive'
+    | '/sign-in'
+    | '/api/auth/$'
+    | '/api/drive/folders'
+    | '/api/drive/share'
+    | '/api/drive/uploads'
+    | '/api/share/$token'
+    | '/api/drive/files/$fileId'
+    | '/api/drive/folders/$folderId'
+  id:
+    | '__root__'
+    | '/drive'
+    | '/sign-in'
+    | '/api/auth/$'
+    | '/api/drive/folders'
+    | '/api/drive/share'
+    | '/api/drive/uploads'
+    | '/api/share/$token'
+    | '/api/drive/files/$fileId'
+    | '/api/drive/folders/$folderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   DriveRoute: typeof DriveRoute
   SignInRoute: typeof SignInRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiDriveFoldersRoute: typeof ApiDriveFoldersRouteWithChildren
+  ApiDriveShareRoute: typeof ApiDriveShareRoute
+  ApiDriveUploadsRoute: typeof ApiDriveUploadsRoute
+  ApiShareTokenRoute: typeof ApiShareTokenRoute
+  ApiDriveFilesFileIdRoute: typeof ApiDriveFilesFileIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +162,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/share/$token': {
+      id: '/api/share/$token'
+      path: '/api/share/$token'
+      fullPath: '/api/share/$token'
+      preLoaderRoute: typeof ApiShareTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/drive/uploads': {
+      id: '/api/drive/uploads'
+      path: '/api/drive/uploads'
+      fullPath: '/api/drive/uploads'
+      preLoaderRoute: typeof ApiDriveUploadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/drive/share': {
+      id: '/api/drive/share'
+      path: '/api/drive/share'
+      fullPath: '/api/drive/share'
+      preLoaderRoute: typeof ApiDriveShareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/drive/folders': {
+      id: '/api/drive/folders'
+      path: '/api/drive/folders'
+      fullPath: '/api/drive/folders'
+      preLoaderRoute: typeof ApiDriveFoldersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -82,13 +197,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/drive/folders/$folderId': {
+      id: '/api/drive/folders/$folderId'
+      path: '/$folderId'
+      fullPath: '/api/drive/folders/$folderId'
+      preLoaderRoute: typeof ApiDriveFoldersFolderIdRouteImport
+      parentRoute: typeof ApiDriveFoldersRoute
+    }
+    '/api/drive/files/$fileId': {
+      id: '/api/drive/files/$fileId'
+      path: '/api/drive/files/$fileId'
+      fullPath: '/api/drive/files/$fileId'
+      preLoaderRoute: typeof ApiDriveFilesFileIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface ApiDriveFoldersRouteChildren {
+  ApiDriveFoldersFolderIdRoute: typeof ApiDriveFoldersFolderIdRoute
+}
+
+const ApiDriveFoldersRouteChildren: ApiDriveFoldersRouteChildren = {
+  ApiDriveFoldersFolderIdRoute: ApiDriveFoldersFolderIdRoute,
+}
+
+const ApiDriveFoldersRouteWithChildren = ApiDriveFoldersRoute._addFileChildren(
+  ApiDriveFoldersRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   DriveRoute: DriveRoute,
   SignInRoute: SignInRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiDriveFoldersRoute: ApiDriveFoldersRouteWithChildren,
+  ApiDriveShareRoute: ApiDriveShareRoute,
+  ApiDriveUploadsRoute: ApiDriveUploadsRoute,
+  ApiShareTokenRoute: ApiShareTokenRoute,
+  ApiDriveFilesFileIdRoute: ApiDriveFilesFileIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
