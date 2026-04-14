@@ -89,6 +89,9 @@ const sharedLoaderQueryOptions = queryOptions({
 });
 
 export const Route = createFileRoute("/shared")({
+  head: () => ({
+    meta: [{ title: "Shared - File Uploader" }],
+  }),
   beforeLoad: async ({ location }) => {
     const session = await getSession();
     if (!session?.session) {

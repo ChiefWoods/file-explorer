@@ -32,6 +32,9 @@ import { safeInternalPath } from "#/lib/nav-redirect";
 import { queryKeys } from "#/lib/query-keys";
 
 export const Route = createFileRoute("/drive")({
+  head: () => ({
+    meta: [{ title: "My Drive - File Uploader" }],
+  }),
   beforeLoad: async ({ location }) => {
     const session = await getSession();
     if (!session?.session) {
