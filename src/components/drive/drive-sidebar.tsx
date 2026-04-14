@@ -1,4 +1,5 @@
 import { ChevronsUpDown, Cloud, FolderOpen, LogOut, Share2, User } from "lucide-react";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import {
@@ -40,8 +41,6 @@ function formatBytes(bytes?: number) {
 
 type DriveSidebarProps = {
   user: SidebarUser;
-  section: DriveSection;
-  onSectionChange: (section: DriveSection) => void;
   storageUsed: number;
   storagePct: number;
   isSigningOut: boolean;
@@ -59,14 +58,17 @@ const DRIVE_SECTION_ITEMS: Array<{
 
 export function DriveSidebar({
   user,
-  section,
-  onSectionChange,
   storageUsed,
   storagePct,
   isSigningOut,
   onSignOut,
 }: DriveSidebarProps) {
   const { isMobile } = useSidebar();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeSection: DriveSection = location.pathname.startsWith("/shared")
+    ? "shared"
+    : "my-drive";
   const userName = user.name?.trim() || "User";
   const userEmail = user.email?.trim() || "No email";
 
@@ -81,14 +83,16 @@ export function DriveSidebar({
         <SidebarGroup className="p-0">
           <SidebarMenu>
             {DRIVE_SECTION_ITEMS.map((item) => {
-              const isActive = section === item.key;
+              const isActive = activeSection === item.key;
               const Icon = item.icon;
               return (
                 <SidebarMenuItem key={item.key}>
                   <SidebarMenuButton
                     type="button"
                     isActive={isActive}
-                    onClick={() => onSectionChange(item.key)}
+                    onClick={() =>
+                      void navigate({ to: item.key === "my-drive" ? "/drive" : "/shared" })
+                    }
                   >
                     <Icon
                       className={`size-[18px] ${isActive ? "text-[var(--primary)]" : "text-[var(--sea-ink-soft)]"}`}
