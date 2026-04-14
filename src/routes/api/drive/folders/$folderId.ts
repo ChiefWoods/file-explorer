@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { errorResponse, HttpError, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
+import { destroyCloudinaryAsset, toCloudinaryResourceType } from "#/lib/cloudinary";
 import {
   assertNoFolderCycle,
   requireMutableOwnedFolder,
@@ -103,35 +104,37 @@ async function handleDeleteFolder(
     const folderId = parseFolderId(folderIdRaw);
     await requireMutableOwnedFolder(session.user.id, folderId);
 
-    const [childFolderCount, fileCount] = await Promise.all([
-      prisma.folder.count({
-        where: {
-          userId: session.user.id,
-          parentId: folderId,
-        },
-      }),
-      prisma.file.count({
-        where: {
-          userId: session.user.id,
-          folderId,
-        },
-      }),
-    ]);
+    const folderIdsToDelete = await collectDescendantFolderIds(session.user.id, folderId);
+    const filesToDelete = await prisma.file.findMany({
+      where: {
+        userId: session.user.id,
+        folderId: { in: folderIdsToDelete },
+      },
+      select: {
+        id: true,
+        cloudinaryPublicId: true,
+        resourceType: true,
+      },
+    });
 
-    if (childFolderCount > 0 || fileCount > 0) {
-      return Response.json(
-        {
-          error: {
-            code: "FOLDER_NOT_EMPTY",
-            message: "Folder is not empty.",
-            details: {
-              childFolderCount,
-              fileCount,
-            },
-          },
-        },
-        { status: 409 },
+    if (filesToDelete.length > 0) {
+      const cloudinaryResults = await Promise.allSettled(
+        filesToDelete.map((file) =>
+          destroyCloudinaryAsset(
+            file.cloudinaryPublicId,
+            toCloudinaryResourceType(file.resourceType),
+          ),
+        ),
       );
+
+      const failedDeletes = cloudinaryResults.filter((result) => result.status === "rejected");
+      if (failedDeletes.length > 0) {
+        throw new HttpError(
+          502,
+          "CLOUDINARY_DELETE_FAILED",
+          `Unable to delete ${failedDeletes.length} file asset${failedDeletes.length > 1 ? "s" : ""} from cloud storage.`,
+        );
+      }
     }
 
     await prisma.folder.delete({
@@ -140,6 +143,8 @@ async function handleDeleteFolder(
 
     return Response.json({
       deletedFolderId: folderId,
+      deletedNestedFolderCount: Math.max(folderIdsToDelete.length - 1, 0),
+      deletedFileCount: filesToDelete.length,
     });
   } catch (error) {
     return errorResponse(error);
@@ -151,4 +156,24 @@ function parseFolderId(folderId: string | undefined): string {
     throw new HttpError(400, "INVALID_FOLDER_ID", "Missing folderId.");
   }
   return folderId;
+}
+
+async function collectDescendantFolderIds(userId: string, folderId: string): Promise<string[]> {
+  const allFolderIds = [folderId];
+  let currentLevelIds = [folderId];
+
+  while (currentLevelIds.length > 0) {
+    const children = await prisma.folder.findMany({
+      where: {
+        userId,
+        parentId: { in: currentLevelIds },
+      },
+      select: { id: true },
+    });
+
+    currentLevelIds = children.map((folder) => folder.id);
+    allFolderIds.push(...currentLevelIds);
+  }
+
+  return allFolderIds;
 }
