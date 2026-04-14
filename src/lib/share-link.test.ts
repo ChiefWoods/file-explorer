@@ -7,14 +7,28 @@ describe("share-link helpers", () => {
     const now = new Date("2026-04-13T00:00:00.000Z");
     const expiresAt = resolveShareExpiry({ duration: "7d" }, now);
 
-    expect(expiresAt.toISOString()).toBe("2026-04-20T00:00:00.000Z");
+    expect(expiresAt?.toISOString()).toBe("2026-04-20T00:00:00.000Z");
+  });
+
+  it("resolves 30d duration from now", () => {
+    const now = new Date("2026-04-13T00:00:00.000Z");
+    const expiresAt = resolveShareExpiry({ duration: "30d" }, now);
+
+    expect(expiresAt?.toISOString()).toBe("2026-05-13T00:00:00.000Z");
+  });
+
+  it("supports never-expiring duration", () => {
+    const now = new Date("2026-04-13T00:00:00.000Z");
+    const expiresAt = resolveShareExpiry({ duration: "never" }, now);
+
+    expect(expiresAt).toBeNull();
   });
 
   it("accepts explicit custom expiry", () => {
     const now = new Date("2026-04-13T00:00:00.000Z");
     const expiresAt = resolveShareExpiry({ expiresAt: "2026-05-01T00:00:00.000Z" }, now);
 
-    expect(expiresAt.toISOString()).toBe("2026-05-01T00:00:00.000Z");
+    expect(expiresAt?.toISOString()).toBe("2026-05-01T00:00:00.000Z");
   });
 
   it("rejects past custom expiry", () => {
@@ -31,6 +45,7 @@ describe("share-link helpers", () => {
 
     expect(isShareExpired(expiredAt, now)).toBe(true);
     expect(isShareExpired(validUntil, now)).toBe(false);
+    expect(isShareExpired(null, now)).toBe(false);
   });
 
   it("generates strong tokens", () => {

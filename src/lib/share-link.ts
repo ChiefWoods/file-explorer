@@ -1,9 +1,7 @@
 import { randomBytes } from "node:crypto";
 
 import { z } from "zod";
-
-export const SHARE_DURATION_PRESETS = ["1d", "7d", "30d"] as const;
-export type ShareDurationPreset = (typeof SHARE_DURATION_PRESETS)[number];
+import { SHARE_DURATION_PRESETS, type ShareDurationPreset } from "#/lib/share-duration";
 
 // 24 hours * 60 minutes * 60 seconds * 1000 milliseconds
 const MS_PER_DAY = 86_400_000;
@@ -30,7 +28,7 @@ export type ResolveShareExpiryInput = {
   expiresAt?: string;
 };
 
-export function resolveShareExpiry(input: ResolveShareExpiryInput, now = new Date()): Date {
+export function resolveShareExpiry(input: ResolveShareExpiryInput, now = new Date()): Date | null {
   if (input.expiresAt) {
     const parsed = new Date(input.expiresAt);
     if (Number.isNaN(parsed.getTime())) {
@@ -50,12 +48,18 @@ export function resolveShareExpiry(input: ResolveShareExpiryInput, now = new Dat
   }
 
   const duration = input.duration ?? "7d";
+  if (duration === "never") {
+    return null;
+  }
   const days = duration === "1d" ? 1 : duration === "7d" ? 7 : 30;
 
   return new Date(now.getTime() + days * MS_PER_DAY);
 }
 
-export function isShareExpired(expiresAt: Date, now = new Date()): boolean {
+export function isShareExpired(expiresAt: Date | null, now = new Date()): boolean {
+  if (!expiresAt) {
+    return false;
+  }
   return expiresAt.getTime() <= now.getTime();
 }
 
