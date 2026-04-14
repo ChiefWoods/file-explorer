@@ -123,7 +123,7 @@ async function handleListFolders(request: Request): Promise<Response> {
         ...file,
         type: "file" as const,
         modifiedAt: file.createdAt.toISOString(),
-        downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl),
+        downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl, file.name),
       })),
       storage: {
         usedBytes: storage._sum.bytes ?? 0,

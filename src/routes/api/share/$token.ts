@@ -98,7 +98,7 @@ async function handlePublicShare(
       folders,
       files: files.map((file) => ({
         ...file,
-        downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl),
+        downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl, file.name),
       })),
       viewer: {
         isSignedIn: Boolean(viewerSession?.session),

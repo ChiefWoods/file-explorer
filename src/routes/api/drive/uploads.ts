@@ -139,7 +139,7 @@ async function handleUploadFiles(request: Request): Promise<Response> {
       {
         files: createdFiles.map((file) => ({
           ...file,
-          downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl),
+          downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl, file.name),
         })),
       },
       { status: 201 },

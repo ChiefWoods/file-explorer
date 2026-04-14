@@ -105,10 +105,14 @@ export function toCloudinaryResourceType(resourceType: string): CloudinaryResour
   return "raw";
 }
 
-export function buildCloudinaryDownloadUrl(secureUrl: string): string {
+export function buildCloudinaryDownloadUrl(secureUrl: string, fileName?: string): string {
   if (!secureUrl.includes("/upload/")) {
     return secureUrl;
   }
 
-  return secureUrl.replace("/upload/", "/upload/fl_attachment/");
+  const attachment = fileName?.trim()
+    ? `fl_attachment:${encodeURIComponent(fileName.trim())}`
+    : "fl_attachment";
+
+  return secureUrl.replace("/upload/", `/upload/${attachment}/`);
 }

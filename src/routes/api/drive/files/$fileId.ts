@@ -46,7 +46,7 @@ async function handleGetFile(request: Request, fileIdRaw: string | undefined): P
 
     return Response.json({
       ...file,
-      downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl),
+      downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl, file.name),
     });
   } catch (error) {
     return errorResponse(error);
@@ -92,7 +92,7 @@ async function handleUpdateFile(
 
     return Response.json({
       ...updated,
-      downloadUrl: buildCloudinaryDownloadUrl(updated.secureUrl),
+      downloadUrl: buildCloudinaryDownloadUrl(updated.secureUrl, updated.name),
     });
   } catch (error) {
     return errorResponse(error);
