@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 
 export type CloudinaryResourceType = "image" | "raw" | "video";
+const CLOUDINARY_UPLOAD_FOLDER = "file-uploader";
 
 type UploadBufferParams = {
   buffer: Buffer;
@@ -57,6 +58,7 @@ export async function uploadBufferToCloudinary(
     const stream = cloudinary.uploader.upload_stream(
       {
         public_id: input.publicId,
+        folder: CLOUDINARY_UPLOAD_FOLDER,
         resource_type: input.resourceType,
         overwrite: false,
         use_filename: false,

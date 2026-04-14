@@ -86,7 +86,7 @@ async function handleUploadFiles(request: Request): Promise<Response> {
 
       const mimeType = file.type.toLowerCase();
       const resourceType = inferCloudinaryResourceType(mimeType);
-      const publicId = `file-uploader/${session.user.id}/${folderId}/${Date.now()}-${randomUUID()}`;
+      const publicId = `${session.user.id}/${folderId}/${Date.now()}-${randomUUID()}`;
       const buffer = Buffer.from(await file.arrayBuffer());
 
       const uploaded = await uploadBufferToCloudinary({
