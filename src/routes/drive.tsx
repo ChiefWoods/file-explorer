@@ -37,13 +37,6 @@ import {
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "#/components/ui/select";
 import { authClient } from "#/lib/auth-client";
 import { auth } from "#/lib/auth";
 import { getSession } from "#/lib/auth.functions";
@@ -745,42 +738,6 @@ function DrivePage() {
                   });
                 }}
               >
-                <uploadForm.Field
-                  name="folderId"
-                  children={(field) => {
-                    const errors = formatFieldErrors(field.state.meta.errors);
-                    return (
-                      <div className="min-w-0 space-y-2">
-                        <Label>Destination folder</Label>
-                        <Select
-                          value={field.state.value}
-                          onValueChange={(value) => field.handleChange(String(value))}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select folder" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="root">Root</SelectItem>
-                            {folderItems.map((folder) => (
-                              <SelectItem key={folder.id} value={folder.id}>
-                                {folder.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {folderItems.length === 0 && (
-                          <p className="text-xs text-[var(--sea-ink-soft)]">
-                            No folders created yet.
-                          </p>
-                        )}
-                        {errors.length > 0 && (
-                          <p className="text-xs text-destructive">{errors.join(" ")}</p>
-                        )}
-                      </div>
-                    );
-                  }}
-                />
-
                 <uploadForm.Field
                   name="files"
                   children={(field) => {
