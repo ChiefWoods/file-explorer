@@ -58,6 +58,8 @@ import { queryKeys } from "#/lib/query-keys";
 import { SHARE_DURATION_PRESETS, type ShareDurationPreset } from "#/lib/share-duration";
 import { uploadFilesFormSchema } from "#/lib/schemas/drive-forms";
 
+const DRIVE_VIEW_MODE_STORAGE_KEY = "drive:view-mode";
+
 export const Route = createFileRoute("/drive")({
   head: () => ({
     meta: [{ title: "My Drive - File Uploader" }],
@@ -226,7 +228,14 @@ function DrivePage() {
   const [existingShareReminder, setExistingShareReminder] = useState<string | null>(null);
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [viewMode, setViewMode] = useState<"list" | "grid">(() => {
+    if (typeof window === "undefined") {
+      return "list";
+    }
+
+    const stored = window.localStorage.getItem(DRIVE_VIEW_MODE_STORAGE_KEY);
+    return stored === "grid" || stored === "list" ? stored : "list";
+  });
   const initialRootListing = Route.useLoaderData();
   const rootFolderId = initialRootListing.rootFolderId;
   const [items, setItems] = useState<DriveItem[]>(() => mapListingToItems(initialRootListing));
@@ -256,6 +265,10 @@ function DrivePage() {
       window.clearTimeout(timeout);
     };
   }, [didCopyShareLink]);
+
+  useEffect(() => {
+    window.localStorage.setItem(DRIVE_VIEW_MODE_STORAGE_KEY, viewMode);
+  }, [viewMode]);
 
   const folderItems = useMemo(
     () => items.filter((item): item is DriveItem & { type: "folder" } => item.type === "folder"),
