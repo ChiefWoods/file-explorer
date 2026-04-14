@@ -20,11 +20,9 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import { DriveEmptyState } from "#/components/drive/drive-empty-state";
-import { DriveErrorState } from "#/components/drive/drive-error-state";
 import { FileDropzone } from "#/components/drive/file-dropzone";
-import { DriveItemsGrid } from "#/components/drive/drive-items-grid";
-import { DriveItemsTable, type DriveTableItem } from "#/components/drive/drive-items-table";
+import { DriveItemsView } from "#/components/drive/drive-items-view";
+import type { DriveItemRecord } from "#/components/drive/drive-items.types";
 import { DriveShell } from "#/components/drive/drive-shell";
 import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
@@ -677,62 +675,34 @@ function DrivePage() {
     }
   }
 
-  const myDriveContent = rootListingQuery.isPending ? (
-    <DriveEmptyState icon={FolderOpen} title="Loading drive..." description="" />
-  ) : rootListingQuery.isError ? (
-    <DriveErrorState
-      title="Could not load drive"
-      description={
+  const myDriveContent = (
+    <DriveItemsView
+      viewMode={viewMode}
+      isPending={rootListingQuery.isPending}
+      isError={rootListingQuery.isError}
+      errorMessage={
         rootListingQuery.error instanceof Error
           ? rootListingQuery.error.message
           : "Something went wrong while loading your files."
       }
-    />
-  ) : items.length === 0 ? (
-    <DriveEmptyState
-      icon={FolderOpen}
-      title="This folder is empty"
-      description="Upload files or create a folder to get started."
-    />
-  ) : viewMode === "list" ? (
-    <DriveItemsTable
+      pendingTitle="Loading drive..."
+      emptyTitle="This folder is empty"
+      emptyDescription="Upload files or create a folder to get started."
       items={items}
       selectedIds={selectedIds}
       onToggleSelect={toggleSelect}
-      onRenameItem={(item) => {
-        handleRenameItem(item);
-      }}
+      onRenameItem={handleRenameItem}
       onDownloadItem={(item) => {
-        void handleDownloadItem(item);
+        void handleDownloadItem(item as DriveItem);
       }}
       onShareItem={(item) => {
-        void handleShareItem(item);
+        void handleShareItem(item as DriveItem);
       }}
       onDeleteItem={(item) => {
-        void handleDeleteItem(item);
+        void handleDeleteItem(item as DriveItem);
       }}
       formatBytes={formatBytes}
-      renderItemIcon={(item) => <DriveItemIcon item={item} />}
-    />
-  ) : (
-    <DriveItemsGrid
-      items={items}
-      selectedIds={selectedIds}
-      onToggleSelect={toggleSelect}
-      onRenameItem={(item) => {
-        handleRenameItem(item);
-      }}
-      onDownloadItem={(item) => {
-        void handleDownloadItem(item);
-      }}
-      onShareItem={(item) => {
-        void handleShareItem(item);
-      }}
-      onDeleteItem={(item) => {
-        void handleDeleteItem(item);
-      }}
-      formatBytes={formatBytes}
-      renderItemIcon={(item) => <DriveItemIcon item={item} />}
+      renderItemIcon={(item) => <DriveItemIcon item={item as DriveItem} />}
     />
   );
 

@@ -7,19 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import type { DriveTableItem } from "#/components/drive/drive-items-table";
+import type { DriveItemRecord, DriveItemsViewProps } from "#/components/drive/drive-items.types";
 
-type DriveItemsGridProps = {
-  items: DriveTableItem[];
-  selectedIds: Set<string>;
-  onToggleSelect: (itemId: string) => void;
-  onRenameItem: (item: DriveTableItem) => void;
-  onDownloadItem: (item: DriveTableItem) => void;
-  onShareItem: (item: DriveTableItem) => void;
-  onDeleteItem: (item: DriveTableItem) => void;
-  formatBytes: (bytes?: number) => string;
-  renderItemIcon: (item: DriveTableItem) => React.ReactNode;
-};
+type DriveItemsGridProps = DriveItemsViewProps;
 
 export function DriveItemsGrid({
   items,

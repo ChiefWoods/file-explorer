@@ -16,26 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
+import type { DriveItemRecord, DriveItemsViewProps } from "#/components/drive/drive-items.types";
 
-export type DriveTableItem = {
-  id: string;
-  type: "folder" | "file";
-  name: string;
-  modified: string;
-  bytes?: number;
-};
+export type DriveTableItem = DriveItemRecord;
 
-type DriveItemsTableProps = {
-  items: DriveTableItem[];
-  selectedIds: Set<string>;
-  onToggleSelect: (itemId: string) => void;
-  onRenameItem: (item: DriveTableItem) => void;
-  onDownloadItem: (item: DriveTableItem) => void;
-  onShareItem: (item: DriveTableItem) => void;
-  onDeleteItem: (item: DriveTableItem) => void;
-  formatBytes: (bytes?: number) => string;
-  renderItemIcon: (item: DriveTableItem) => React.ReactNode;
-};
+type DriveItemsTableProps = DriveItemsViewProps;
 
 export function DriveItemsTable({
   items,
