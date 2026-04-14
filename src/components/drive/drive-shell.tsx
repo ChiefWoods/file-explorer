@@ -1,0 +1,58 @@
+import { SidebarProvider } from "#/components/ui/sidebar";
+import { DriveSidebar } from "#/components/drive/drive-sidebar";
+
+type SidebarUser = {
+  name?: string | null;
+  email?: string | null;
+};
+
+type DriveShellProps = {
+  user: SidebarUser;
+  storageUsed: number;
+  storagePct: number;
+  isSigningOut: boolean;
+  onSignOut: () => void;
+  title: string;
+  actions?: React.ReactNode;
+  topContent?: React.ReactNode;
+  children: React.ReactNode;
+};
+
+export function DriveShell({
+  user,
+  storageUsed,
+  storagePct,
+  isSigningOut,
+  onSignOut,
+  title,
+  actions,
+  topContent,
+  children,
+}: DriveShellProps) {
+  return (
+    <SidebarProvider>
+      <main className="min-h-screen min-w-screen">
+        <div className="island-shell flex min-h-screen w-full overflow-hidden rounded-none">
+          <DriveSidebar
+            user={user}
+            storageUsed={storageUsed}
+            storagePct={storagePct}
+            isSigningOut={isSigningOut}
+            onSignOut={onSignOut}
+          />
+
+          <section className="flex min-w-0 flex-1 flex-col gap-4 bg-[var(--bg-base)] p-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex min-h-9 items-center justify-between gap-3">
+                <p className="m-0 text-lg font-bold text-[var(--sea-ink)]">{title}</p>
+                <div className="flex min-h-9 items-center gap-2.5">{actions}</div>
+              </div>
+              {topContent}
+            </div>
+            {children}
+          </section>
+        </div>
+      </main>
+    </SidebarProvider>
+  );
+}
