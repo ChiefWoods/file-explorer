@@ -10,6 +10,7 @@ import {
   destroyCloudinaryAsset,
   uploadBufferToCloudinary,
 } from "#/lib/cloudinary";
+import { USER_STORAGE_LIMIT_BYTES, USER_STORAGE_LIMIT_GB } from "#/lib/drive-constants";
 import { requireOwnedFolder } from "#/lib/drive-repository";
 import { prisma } from "#/lib/db";
 import { assertValidUploadFile, inferCloudinaryResourceType } from "#/lib/upload-policy";
@@ -55,6 +56,20 @@ async function handleUploadFiles(request: Request): Promise<Response> {
         400,
         "TOO_MANY_FILES",
         `You can upload up to ${MAX_FILES_PER_UPLOAD} files at a time.`,
+      );
+    }
+
+    const incomingBytes = files.reduce((total, file) => total + file.size, 0);
+    const storage = await prisma.file.aggregate({
+      where: { userId: session.user.id },
+      _sum: { bytes: true },
+    });
+    const usedBytes = storage._sum.bytes ?? 0;
+    if (usedBytes + incomingBytes > USER_STORAGE_LIMIT_BYTES) {
+      throw new HttpError(
+        413,
+        "STORAGE_LIMIT_EXCEEDED",
+        `Storage limit exceeded (${USER_STORAGE_LIMIT_GB}GB).`,
       );
     }
 

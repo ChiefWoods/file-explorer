@@ -21,6 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "#/components/ui/sidebar";
+import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import ThemeToggle from "../ThemeToggle";
 
 type DriveSection = "my-drive" | "shared";
@@ -103,7 +104,7 @@ export function DriveSidebar({
         <div className="rounded-xl border border-border bg-[var(--surface)] p-3.5">
           <p className="m-0 text-xs font-semibold text-[var(--sea-ink)]">Storage</p>
           <p className="mt-1 text-xs text-[var(--sea-ink-soft)]">
-            {formatBytes(storageUsed)} of 15.0 GB used
+            {formatBytes(storageUsed)} of {formatBytes(USER_STORAGE_LIMIT_BYTES)} used
           </p>
           <Progress className="mt-2" value={storagePct} />
         </div>

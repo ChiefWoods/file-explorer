@@ -1,0 +1,4 @@
+// 1 GiB = 1,073,741,824 bytes
+export const BYTES_PER_GIB = 1_073_741_824;
+export const USER_STORAGE_LIMIT_GB = 1;
+export const USER_STORAGE_LIMIT_BYTES = USER_STORAGE_LIMIT_GB * BYTES_PER_GIB;

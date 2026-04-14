@@ -4,6 +4,7 @@ import { z } from "zod";
 import { errorResponse, HttpError, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
 import { buildCloudinaryDownloadUrl } from "#/lib/cloudinary";
+import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { getFolderBreadcrumbs, requireOwnedFolder } from "#/lib/drive-repository";
 import { prisma } from "#/lib/db";
 import { isPrismaErrorCode } from "#/lib/prisma-errors";
@@ -24,8 +25,6 @@ const createFolderBodySchema = z.object({
 });
 
 type HandlerArgs = { request: Request };
-
-const TOTAL_STORAGE_BYTES = 15 * 1024 ** 3;
 
 export const Route = createFileRoute("/api/drive/folders")({
   server: {
@@ -128,7 +127,7 @@ async function handleListFolders(request: Request): Promise<Response> {
       })),
       storage: {
         usedBytes: storage._sum.bytes ?? 0,
-        totalBytes: TOTAL_STORAGE_BYTES,
+        totalBytes: USER_STORAGE_LIMIT_BYTES,
       },
     });
   } catch (error) {
