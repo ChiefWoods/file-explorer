@@ -54,8 +54,35 @@ export const Route = createRootRoute({
       },
     ],
   }),
+  errorComponent: ({ error }) => {
+    if (isAbortLikeError(error)) {
+      return null;
+    }
+
+    const message = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return (
+      <main className="page-wrap px-4 pb-16 pt-10">
+        <div className="mx-auto w-full max-w-2xl rounded-2xl border border-destructive/35 bg-destructive/10 p-6">
+          <h1 className="m-0 text-lg font-semibold text-destructive">Something went wrong</h1>
+          <p className="mt-2 text-sm text-destructive/90">{message}</p>
+        </div>
+      </main>
+    );
+  },
   shellComponent: RootDocument,
 });
+
+function isAbortLikeError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const name = "name" in error && typeof error.name === "string" ? error.name : "";
+  const message =
+    "message" in error && typeof error.message === "string" ? error.message.toLowerCase() : "";
+
+  return name === "AbortError" || message.includes("abort") || message.includes("cancel");
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   useEffect(() => {
