@@ -5,13 +5,7 @@ import { errorResponse, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
 import { requireOwnedFolder } from "#/lib/drive-repository";
 import { prisma } from "#/lib/db";
-import { isPrismaErrorCode } from "#/lib/prisma-errors";
-import {
-  createShareLinkInputSchema,
-  createShareToken,
-  isShareExpired,
-  resolveShareExpiry,
-} from "#/lib/share-link";
+import { createShareLinkInputSchema, isShareExpired, resolveShareExpiry } from "#/lib/share-link";
 
 type HandlerArgs = { request: Request };
 
@@ -19,8 +13,6 @@ const listShareSearchSchema = z.object({
   folderId: z.string().trim().min(1).optional(),
   includeExpired: z.enum(["true", "false"]).optional(),
 });
-
-const MAX_SHARE_TOKEN_COLLISION_RETRIES = 4;
 
 export const Route = createFileRoute("/api/drive/share")({
   server: {
@@ -49,12 +41,15 @@ async function handleListShares(request: Request): Promise<Response> {
       where: {
         createdByUserId: session.user.id,
         ...(search.folderId ? { folderId: search.folderId } : {}),
-        ...(!includeExpired ? { expiresAt: { gt: new Date() } } : {}),
+        ...(!includeExpired
+          ? {
+              OR: [{ expiresAt: { gt: new Date() } }, { expiresAt: null }],
+            }
+          : {}),
       },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        token: true,
         folderId: true,
         expiresAt: true,
         createdAt: true,
@@ -71,7 +66,7 @@ async function handleListShares(request: Request): Promise<Response> {
       links: links.map((link) => ({
         ...link,
         isExpired: isShareExpired(link.expiresAt),
-        url: buildPublicShareUrl(request, link.token),
+        url: buildPublicShareUrl(request, link.folderId),
       })),
     });
   } catch (error) {
@@ -90,48 +85,39 @@ async function handleCreateShareLink(request: Request): Promise<Response> {
       expiresAt: body.expiresAt,
     });
 
-    for (let attempt = 0; attempt < MAX_SHARE_TOKEN_COLLISION_RETRIES; attempt += 1) {
-      const token = createShareToken();
+    const deterministicToken = `folder:${body.folderId}`;
+    const link = await prisma.shareLink.upsert({
+      where: { token: deterministicToken },
+      create: {
+        token: deterministicToken,
+        folderId: body.folderId,
+        createdByUserId: session.user.id,
+        expiresAt,
+      },
+      update: {
+        expiresAt,
+      },
+      select: {
+        id: true,
+        folderId: true,
+        expiresAt: true,
+        createdAt: true,
+      },
+    });
 
-      try {
-        const link = await prisma.shareLink.create({
-          data: {
-            token,
-            folderId: body.folderId,
-            createdByUserId: session.user.id,
-            expiresAt,
-          },
-          select: {
-            id: true,
-            token: true,
-            folderId: true,
-            expiresAt: true,
-            createdAt: true,
-          },
-        });
-
-        return Response.json(
-          {
-            ...link,
-            url: buildPublicShareUrl(request, link.token),
-          },
-          { status: 201 },
-        );
-      } catch (error) {
-        if (isPrismaErrorCode(error, "P2002")) {
-          continue;
-        }
-        throw error;
-      }
-    }
-
-    throw new Error("Could not generate a unique share token. Please try again.");
+    return Response.json(
+      {
+        ...link,
+        url: buildPublicShareUrl(request, link.folderId),
+      },
+      { status: 201 },
+    );
   } catch (error) {
     return errorResponse(error);
   }
 }
 
-function buildPublicShareUrl(request: Request, token: string): string {
+function buildPublicShareUrl(request: Request, folderId: string): string {
   const url = new URL(request.url);
-  return `${url.origin}/share/${token}`;
+  return `${url.origin}/drive?folderId=${folderId}`;
 }
