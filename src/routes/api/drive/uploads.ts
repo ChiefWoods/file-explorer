@@ -11,7 +11,7 @@ import {
   uploadBufferToCloudinary,
 } from "#/lib/cloudinary";
 import { USER_STORAGE_LIMIT_BYTES, USER_STORAGE_LIMIT_GB } from "#/lib/drive-constants";
-import { requireOwnedFolder } from "#/lib/drive-repository";
+import { ensureUserRootFolder, requireOwnedFolder } from "#/lib/drive-repository";
 import { prisma } from "#/lib/db";
 import { assertValidUploadFile, inferCloudinaryResourceType } from "#/lib/upload-policy";
 
@@ -44,8 +44,10 @@ async function handleUploadFiles(request: Request): Promise<Response> {
     const session = await requireAuthSession(request);
     const formData = await request.formData();
 
-    const folderId = parseFolderId(formData.get("folderId"));
-    await requireOwnedFolder(session.user.id, folderId);
+    const folderId = await resolveUploadFolderId(
+      session.user.id,
+      parseFolderId(formData.get("folderId")),
+    );
 
     const files = formData.getAll("files").filter(isFile);
     if (files.length === 0) {
@@ -159,6 +161,16 @@ function parseFolderId(value: FormDataEntryValue | null): string {
     throw new HttpError(400, "INVALID_FOLDER_ID", "folderId is required.");
   }
   return value.trim();
+}
+
+async function resolveUploadFolderId(userId: string, folderId: string): Promise<string> {
+  if (folderId === "root") {
+    const rootFolder = await ensureUserRootFolder(userId);
+    return rootFolder.id;
+  }
+
+  await requireOwnedFolder(userId, folderId);
+  return folderId;
 }
 
 function isFile(entry: FormDataEntryValue): entry is File {

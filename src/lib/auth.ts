@@ -3,6 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 
 import { prisma } from "#/lib/db";
+import { ensureUserRootFolder } from "#/lib/drive-repository";
 
 const trustedOrigins = process.env.BETTER_AUTH_TRUSTED_ORIGINS
   ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",")
@@ -30,5 +31,18 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins,
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          if (typeof user.id !== "string" || user.id.length === 0) {
+            return;
+          }
+
+          await ensureUserRootFolder(user.id);
+        },
+      },
+    },
+  },
   plugins: [tanstackStartCookies()],
 });

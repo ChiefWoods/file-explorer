@@ -3,7 +3,11 @@ import { z } from "zod";
 
 import { errorResponse, HttpError, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
-import { assertNoFolderCycle, requireOwnedFolder } from "#/lib/drive-repository";
+import {
+  assertNoFolderCycle,
+  requireMutableOwnedFolder,
+  requireOwnedFolder,
+} from "#/lib/drive-repository";
 import { prisma } from "#/lib/db";
 import { isPrismaErrorCode } from "#/lib/prisma-errors";
 import { folderNameSchema } from "#/lib/upload-policy";
@@ -41,7 +45,7 @@ async function handleUpdateFolder(
     const session = await requireAuthSession(request);
     const folderId = parseFolderId(folderIdRaw);
 
-    await requireOwnedFolder(session.user.id, folderId);
+    await requireMutableOwnedFolder(session.user.id, folderId);
     const body = await parseJsonBody(request, updateFolderBodySchema);
 
     const updateData: { name?: string; parentId?: string | null } = {};
@@ -97,7 +101,7 @@ async function handleDeleteFolder(
   try {
     const session = await requireAuthSession(request);
     const folderId = parseFolderId(folderIdRaw);
-    await requireOwnedFolder(session.user.id, folderId);
+    await requireMutableOwnedFolder(session.user.id, folderId);
 
     const [childFolderCount, fileCount] = await Promise.all([
       prisma.folder.count({

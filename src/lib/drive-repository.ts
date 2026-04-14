@@ -1,6 +1,8 @@
 import { prisma } from "#/lib/db";
 import { HttpError } from "#/lib/api/http";
 
+export const ROOT_FOLDER_NAME = "Root";
+
 type FolderSummary = {
   id: string;
   name: string;
@@ -22,6 +24,52 @@ export async function requireOwnedFolder(userId: string, folderId: string): Prom
   }
 
   return folder;
+}
+
+export async function requireMutableOwnedFolder(
+  userId: string,
+  folderId: string,
+): Promise<FolderSummary> {
+  const folder = await requireOwnedFolder(userId, folderId);
+  const rootFolder = await ensureUserRootFolder(userId);
+
+  if (folder.id === rootFolder.id) {
+    throw new HttpError(403, "ROOT_FOLDER_IMMUTABLE", "Root folder cannot be updated or deleted.");
+  }
+
+  return folder;
+}
+
+export async function ensureUserRootFolder(userId: string): Promise<FolderSummary> {
+  const existingRootFolder = await prisma.folder.findFirst({
+    where: {
+      userId,
+      parentId: null,
+      name: ROOT_FOLDER_NAME,
+    },
+    select: {
+      id: true,
+      name: true,
+      parentId: true,
+    },
+  });
+
+  if (existingRootFolder) {
+    return existingRootFolder;
+  }
+
+  return prisma.folder.create({
+    data: {
+      userId,
+      parentId: null,
+      name: ROOT_FOLDER_NAME,
+    },
+    select: {
+      id: true,
+      name: true,
+      parentId: true,
+    },
+  });
 }
 
 export async function requireOwnedFile(userId: string, fileId: string) {
