@@ -1,6 +1,12 @@
-import { MoreHorizontal } from "lucide-react";
+import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
 
 import { Button } from "#/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "#/components/ui/dropdown-menu";
 import { cn } from "#/lib/utils";
 import {
   Table,
@@ -23,6 +29,10 @@ type DriveItemsTableProps = {
   items: DriveTableItem[];
   selectedIds: Set<string>;
   onToggleSelect: (itemId: string) => void;
+  onRenameItem: (item: DriveTableItem) => void;
+  onDownloadItem: (item: DriveTableItem) => void;
+  onShareItem: (item: DriveTableItem) => void;
+  onDeleteItem: (item: DriveTableItem) => void;
   formatBytes: (bytes?: number) => string;
   renderItemIcon: (item: DriveTableItem) => React.ReactNode;
 };
@@ -31,6 +41,10 @@ export function DriveItemsTable({
   items,
   selectedIds,
   onToggleSelect,
+  onRenameItem,
+  onDownloadItem,
+  onShareItem,
+  onDeleteItem,
   formatBytes,
   renderItemIcon,
 }: DriveItemsTableProps) {
@@ -80,15 +94,64 @@ export function DriveItemsTable({
                   {item.type === "folder" ? "" : formatBytes(item.bytes)}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Open ${item.name} actions`}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <MoreHorizontal />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Open ${item.name} actions`}
+                          onClick={(event) => event.stopPropagation()}
+                        />
+                      }
+                    >
+                      <MoreHorizontal />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="min-w-36">
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onRenameItem(item);
+                        }}
+                      >
+                        <PencilLine />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onDownloadItem(item);
+                        }}
+                      >
+                        <Download />
+                        Download
+                      </DropdownMenuItem>
+                      {item.type === "folder" && (
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onShareItem(item);
+                          }}
+                        >
+                          <Share2 />
+                          Share
+                        </DropdownMenuItem>
+                      )}
+                      {item.type === "file" && (
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDeleteItem(item);
+                          }}
+                        >
+                          <Trash2 />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             );

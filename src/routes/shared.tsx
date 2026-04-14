@@ -2,8 +2,8 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
-import { Copy, ExternalLink, Share2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Copy, CopyCheck, Share2, Trash2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { DriveEmptyState } from "#/components/drive/drive-empty-state";
@@ -13,6 +13,7 @@ import { authClient } from "#/lib/auth-client";
 import { getSession } from "#/lib/auth.functions";
 import { auth } from "#/lib/auth";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
+import { getFolderIdPath } from "#/lib/drive-repository";
 import { prisma } from "#/lib/db";
 import { safeInternalPath } from "#/lib/nav-redirect";
 import { queryKeys } from "#/lib/query-keys";
@@ -30,9 +31,10 @@ type SharedLoaderData = {
   storageUsed: number;
   links: Array<{
     id: string;
+    folderId: string;
     folderName: string;
     createdAt: string;
-    expiresAt: string;
+    expiresAt: string | null;
     url: string;
   }>;
 };
@@ -53,12 +55,12 @@ const getSharedLoaderData = createServerFn({ method: "GET" }).handler(
     const links = await prisma.shareLink.findMany({
       where: {
         createdByUserId: session.user.id,
-        expiresAt: { gt: new Date() },
+        OR: [{ expiresAt: { gt: new Date() } }, { expiresAt: null }],
       },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        token: true,
+        folderId: true,
         createdAt: true,
         expiresAt: true,
         folder: {
@@ -71,13 +73,19 @@ const getSharedLoaderData = createServerFn({ method: "GET" }).handler(
 
     return {
       storageUsed: aggregate._sum.bytes ?? 0,
-      links: links.map((link) => ({
-        id: link.id,
-        folderName: link.folder.name,
-        createdAt: link.createdAt.toISOString(),
-        expiresAt: link.expiresAt.toISOString(),
-        url: `${new URL(headers.get("origin") ?? "http://localhost:3000").origin}/share/${link.token}`,
-      })),
+      links: await Promise.all(
+        links.map(async (link) => {
+          const folderPathIds = await getFolderIdPath(session.user.id, link.folderId);
+          return {
+            id: link.id,
+            folderId: link.folderId,
+            folderName: link.folder.name,
+            createdAt: link.createdAt.toISOString(),
+            expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+            url: `${new URL(headers.get("origin") ?? "http://localhost:3000").origin}/drive/${folderPathIds.join("/")}`,
+          };
+        }),
+      ),
     };
   },
 );
@@ -116,15 +124,19 @@ function SharedPage() {
   const router = useRouter();
   const { user } = Route.useRouteContext();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [deletingShareIds, setDeletingShareIds] = useState<Set<string>>(new Set());
+  const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
+  const copiedResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialData = Route.useLoaderData();
   const query = useQuery({
     ...sharedLoaderQueryOptions,
     initialData,
   });
 
-  const storageUsed = useMemo(() => query.data?.storageUsed ?? 0, [query.data]);
+  const data = query.data ?? initialData;
+  const storageUsed = useMemo(() => data.storageUsed, [data]);
   const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
-  const links = query.data?.links ?? [];
+  const links = data.links;
 
   async function signOut() {
     if (isSigningOut) {
@@ -148,6 +160,50 @@ function SharedPage() {
     }
   }
 
+  async function deleteShareLink(shareId: string) {
+    if (deletingShareIds.has(shareId)) {
+      return;
+    }
+
+    setDeletingShareIds((prev) => new Set(prev).add(shareId));
+    try {
+      const response = await fetch(`/api/drive/share/${shareId}`, {
+        method: "DELETE",
+      });
+      const json = (await response.json().catch(() => null)) as {
+        error?: { message?: string };
+      } | null;
+
+      if (!response.ok) {
+        throw new Error(json?.error?.message ?? "Could not delete share link.");
+      }
+
+      await query.refetch();
+      toast.success("Share link deleted.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete share link.");
+    } finally {
+      setDeletingShareIds((prev) => {
+        const next = new Set(prev);
+        next.delete(shareId);
+        return next;
+      });
+    }
+  }
+
+  async function copyShareLink(shareId: string, url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedShareId(shareId);
+      if (copiedResetTimer.current) {
+        clearTimeout(copiedResetTimer.current);
+      }
+      copiedResetTimer.current = setTimeout(() => {
+        setCopiedShareId(null);
+      }, 1200);
+    } catch {}
+  }
+
   return (
     <DriveShell
       user={user}
@@ -157,7 +213,7 @@ function SharedPage() {
       onSignOut={() => void signOut()}
       title="Shared"
     >
-      {query.isPending ? (
+      {query.isPending && !query.data ? (
         <DriveEmptyState icon={Share2} title="Loading shared links..." description="" />
       ) : query.isError ? (
         <DriveErrorState
@@ -210,11 +266,13 @@ function SharedPage() {
                     })}
                   </TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3 text-right text-sm text-[var(--sea-ink-soft)]">
-                    {new Date(link.expiresAt).toLocaleDateString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {link.expiresAt
+                      ? new Date(link.expiresAt).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Never"}
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     <p className="truncate text-sm text-[var(--sea-ink-soft)]">{link.url}</p>
@@ -226,21 +284,23 @@ function SharedPage() {
                         variant="ghost"
                         size="icon-sm"
                         aria-label="Copy share link"
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(link.url);
-                          toast.success("Share link copied.");
-                        }}
+                        onClick={() => void copyShareLink(link.id, link.url)}
                       >
-                        <Copy />
+                        {copiedShareId === link.id ? (
+                          <CopyCheck className="rounded-[4px] text-emerald-600" />
+                        ) : (
+                          <Copy />
+                        )}
                       </Button>
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon-sm"
-                        aria-label="Open share link"
-                        onClick={() => window.open(link.url, "_blank", "noopener,noreferrer")}
+                        aria-label="Delete share link"
+                        disabled={deletingShareIds.has(link.id)}
+                        onClick={() => void deleteShareLink(link.id)}
                       >
-                        <ExternalLink />
+                        <Trash2 />
                       </Button>
                     </div>
                   </TableCell>

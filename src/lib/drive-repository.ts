@@ -121,6 +121,11 @@ export async function getFolderBreadcrumbs(userId: string, folderId: string | nu
   return breadcrumbs.reverse().map((folder) => ({ id: folder.id, name: folder.name }));
 }
 
+export async function getFolderIdPath(userId: string, folderId: string): Promise<string[]> {
+  const breadcrumbs = await getFolderBreadcrumbs(userId, folderId);
+  return breadcrumbs.map((folder) => folder.id);
+}
+
 export async function assertNoFolderCycle(
   userId: string,
   folderId: string,

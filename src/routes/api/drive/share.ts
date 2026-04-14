@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { errorResponse, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
-import { requireOwnedFolder } from "#/lib/drive-repository";
+import { getFolderIdPath, requireOwnedFolder } from "#/lib/drive-repository";
 import { prisma } from "#/lib/db";
 import { createShareLinkInputSchema, isShareExpired, resolveShareExpiry } from "#/lib/share-link";
 
@@ -62,11 +62,21 @@ async function handleListShares(request: Request): Promise<Response> {
       },
     });
 
+    const urlsByFolderId = new Map<string, string>();
+    await Promise.all(
+      links.map(async (link) => {
+        if (!urlsByFolderId.has(link.folderId)) {
+          const folderPathIds = await getFolderIdPath(session.user.id, link.folderId);
+          urlsByFolderId.set(link.folderId, buildPublicShareUrl(request, folderPathIds));
+        }
+      }),
+    );
+
     return Response.json({
       links: links.map((link) => ({
         ...link,
         isExpired: isShareExpired(link.expiresAt),
-        url: buildPublicShareUrl(request, link.folderId),
+        url: urlsByFolderId.get(link.folderId) ?? buildPublicShareUrl(request, [link.folderId]),
       })),
     });
   } catch (error) {
@@ -105,10 +115,12 @@ async function handleCreateShareLink(request: Request): Promise<Response> {
       },
     });
 
+    const folderPathIds = await getFolderIdPath(session.user.id, link.folderId);
+
     return Response.json(
       {
         ...link,
-        url: buildPublicShareUrl(request, link.folderId),
+        url: buildPublicShareUrl(request, folderPathIds),
       },
       { status: 201 },
     );
@@ -117,7 +129,7 @@ async function handleCreateShareLink(request: Request): Promise<Response> {
   }
 }
 
-function buildPublicShareUrl(request: Request, folderId: string): string {
+function buildPublicShareUrl(request: Request, folderPathIds: string[]): string {
   const url = new URL(request.url);
-  return `${url.origin}/drive?folderId=${folderId}`;
+  return `${url.origin}/drive/${folderPathIds.join("/")}`;
 }
