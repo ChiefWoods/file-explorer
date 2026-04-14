@@ -129,7 +129,7 @@ model ShareLink {
   token           String   @unique
   folderId        String
   createdByUserId String
-  expiresAt       DateTime
+  expiresAt       DateTime?
   createdAt       DateTime @default(now())
 
   folder    Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
