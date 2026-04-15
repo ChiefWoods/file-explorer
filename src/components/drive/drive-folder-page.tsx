@@ -95,15 +95,15 @@ function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
 
 function DriveItemIcon({ item }: { item: DriveItem }) {
   if (item.type === "folder") {
-    return <FolderOpen className="size-4 text-[var(--primary)]" aria-hidden />;
+    return <FolderOpen className="size-4 text-primary" aria-hidden />;
   }
   if (item.mimeType?.startsWith("image/")) {
-    return <FileImage className="size-4 text-[var(--primary)]" aria-hidden />;
+    return <FileImage className="size-4 text-primary" aria-hidden />;
   }
   if (item.mimeType?.includes("csv") || item.mimeType?.includes("excel")) {
-    return <FileSpreadsheet className="size-4 text-[var(--primary)]" aria-hidden />;
+    return <FileSpreadsheet className="size-4 text-primary" aria-hidden />;
   }
-  return <FileText className="size-4 text-[var(--primary)]" aria-hidden />;
+  return <FileText className="size-4 text-primary" aria-hidden />;
 }
 
 export function DriveFolderPage({
@@ -199,11 +199,11 @@ export function DriveFolderPage({
 
   const title = (
     <Breadcrumb>
-      <BreadcrumbList className="text-lg font-bold text-[var(--sea-ink-soft)]">
+      <BreadcrumbList className="text-lg font-bold text-(--sea-ink-soft)">
         <BreadcrumbItem>
           <Link
             to="/drive"
-            className="text-lg font-bold text-[var(--sea-ink)] transition-colors hover:text-[var(--sea-ink)]"
+            className="text-lg font-bold text-(--sea-ink) transition-colors hover:text-(--sea-ink)"
           >
             My Drive
           </Link>
@@ -220,14 +220,14 @@ export function DriveFolderPage({
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {isLast ? (
-                  <BreadcrumbPage className="text-lg font-bold text-[var(--sea-ink)]">
+                  <BreadcrumbPage className="text-lg font-bold text-(--sea-ink)">
                     {crumb.name}
                   </BreadcrumbPage>
                 ) : (
                   <Link
                     to="/drive/$"
                     params={{ _splat: path }}
-                    className="text-lg font-bold text-[var(--sea-ink)] transition-colors hover:text-[var(--sea-ink)]"
+                    className="text-lg font-bold text-(--sea-ink) transition-colors hover:text-(--sea-ink)"
                   >
                     {crumb.name}
                   </Link>
@@ -782,7 +782,7 @@ export function DriveFolderPage({
       topContent={
         selectedCount > 0 && (
           <div className="border-border bg-card flex items-center justify-between rounded-xl border px-3 py-2">
-            <div className="flex items-center gap-2.5 text-sm text-[var(--sea-ink)]">
+            <div className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
               <Button
                 type="button"
                 variant="ghost"
@@ -870,7 +870,7 @@ export function DriveFolderPage({
             </DialogDescription>
           </DialogHeader>
           {existingShareReminder && (
-            <p className="border-border bg-muted/40 rounded-md border px-3 py-2 text-sm text-[var(--sea-ink-soft)]">
+            <p className="border-border bg-muted/40 rounded-md border px-3 py-2 text-sm text-(--sea-ink-soft)">
               {existingShareReminder}
             </p>
           )}

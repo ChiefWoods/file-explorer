@@ -37,7 +37,7 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
     <div className="min-w-0 space-y-2">
       <div
         className={`min-w-0 cursor-pointer overflow-hidden rounded-xl border border-dashed p-6 text-center outline-none ${
-          isDragActive ? "border-[var(--primary)] bg-[var(--surface)]" : "border-border bg-card"
+          isDragActive ? "border-(--primary) bg-(--surface)" : "border-border bg-card"
         } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
         role="button"
         tabIndex={disabled ? -1 : 0}
@@ -85,8 +85,8 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
                   key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
                   className="flex min-w-0 items-center gap-2"
                 >
-                  <ItemIcon className="size-3.5 shrink-0 text-[var(--primary)]" aria-hidden />
-                  <span className="min-w-0 flex-1 truncate text-sm text-[var(--sea-ink)]">
+                  <ItemIcon className="size-3.5 shrink-0 text-(--primary)" aria-hidden />
+                  <span className="min-w-0 flex-1 truncate text-sm text-(--sea-ink)">
                     {file.name}
                   </span>
                 </li>
@@ -95,10 +95,8 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
           </ul>
         ) : (
           <>
-            <p className="m-0 text-sm font-medium text-[var(--sea-ink)]">
-              Drag and drop files here
-            </p>
-            <p className="mt-1 text-xs text-[var(--sea-ink-soft)]">or click to choose files</p>
+            <p className="m-0 text-sm font-medium text-(--sea-ink)">Drag and drop files here</p>
+            <p className="mt-1 text-xs text-(--sea-ink-soft)">or click to choose files</p>
           </>
         )}
       </div>
@@ -111,7 +109,7 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
         disabled={disabled}
         onChange={(event) => onFilesChange(Array.from(event.target.files ?? []))}
       />
-      <p className="text-xs text-[var(--sea-ink-soft)]">
+      <p className="text-xs text-(--sea-ink-soft)">
         {files.length === 0
           ? "No files selected."
           : `${files.length} file${files.length > 1 ? "s" : ""} selected.`}

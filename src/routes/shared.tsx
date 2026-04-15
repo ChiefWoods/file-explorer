@@ -236,37 +236,37 @@ function SharedPage() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="px-4 py-2 text-xs font-semibold tracking-wide text-[var(--sea-ink-soft)] uppercase">
+                <TableHead className="px-4 py-2 text-xs font-semibold tracking-wide text-(--sea-ink-soft) uppercase">
                   Folder
                 </TableHead>
-                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] uppercase">
+                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase">
                   Created
                 </TableHead>
-                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] uppercase">
+                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase">
                   Expires
                 </TableHead>
-                <TableHead className="w-[240px] px-4 py-2 text-xs font-semibold tracking-wide text-[var(--sea-ink-soft)] uppercase">
+                <TableHead className="w-[240px] px-4 py-2 text-xs font-semibold tracking-wide text-(--sea-ink-soft) uppercase">
                   Link
                 </TableHead>
-                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] uppercase">
+                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase">
                   Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {links.map((link) => (
-                <TableRow key={link.id} className="hover:!bg-[var(--surface)]/60">
-                  <TableCell className="px-4 py-3 text-left text-sm text-[var(--sea-ink)]">
+                <TableRow key={link.id} className="hover:bg-(--surface)/60!">
+                  <TableCell className="px-4 py-3 text-left text-sm text-(--sea-ink)">
                     {link.folderName}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-[var(--sea-ink-soft)]">
+                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
                     {new Date(link.createdAt).toLocaleDateString(undefined, {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
                     })}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-[var(--sea-ink-soft)]">
+                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
                     {link.expiresAt
                       ? new Date(link.expiresAt).toLocaleDateString(undefined, {
                           month: "short",
@@ -276,7 +276,7 @@ function SharedPage() {
                       : "Never"}
                   </TableCell>
                   <TableCell className="px-4 py-3">
-                    <p className="truncate text-sm text-[var(--sea-ink-soft)]">{link.url}</p>
+                    <p className="truncate text-sm text-(--sea-ink-soft)">{link.url}</p>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1">

@@ -66,10 +66,10 @@ export function DriveSidebar({
   const userEmail = user.email?.trim() || "No email";
 
   return (
-    <Sidebar className="border-border w-[264px] bg-[var(--sidebar)] p-2">
+    <Sidebar className="border-border w-[264px] bg-(--sidebar) p-2">
       <SidebarHeader className="flex flex-row items-center gap-2.5">
-        <Cloud className="size-6 text-[var(--primary)]" aria-hidden />
-        <p className="m-0 text-[17px] font-bold text-[var(--sea-ink)]">File Uploader</p>
+        <Cloud className="size-6 text-(--primary)" aria-hidden />
+        <p className="m-0 text-[17px] font-bold text-(--sea-ink)">File Uploader</p>
       </SidebarHeader>
 
       <SidebarContent>
@@ -88,7 +88,7 @@ export function DriveSidebar({
                     }
                   >
                     <Icon
-                      className={`size-[18px] ${isActive ? "text-[var(--primary)]" : "text-[var(--sea-ink-soft)]"}`}
+                      className={`size-[18px] ${isActive ? "text-(--primary)" : "text-(--sea-ink-soft)"}`}
                       aria-hidden
                     />
                     {item.label}
@@ -98,9 +98,9 @@ export function DriveSidebar({
             })}
           </SidebarMenu>
         </SidebarGroup>
-        <div className="border-border rounded-xl border bg-[var(--surface)] p-3.5">
-          <p className="m-0 text-xs font-semibold text-[var(--sea-ink)]">Storage</p>
-          <p className="mt-1 text-xs text-[var(--sea-ink-soft)]">
+        <div className="border-border rounded-xl border bg-(--surface) p-3.5">
+          <p className="m-0 text-xs font-semibold text-(--sea-ink)">Storage</p>
+          <p className="mt-1 text-xs text-(--sea-ink-soft)">
             {formatBytes(storageUsed, { empty: "—" })} of{" "}
             {formatBytes(USER_STORAGE_LIMIT_BYTES, { empty: "—" })} used
           </p>

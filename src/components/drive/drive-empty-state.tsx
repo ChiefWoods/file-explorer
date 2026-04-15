@@ -21,10 +21,8 @@ export function DriveEmptyState({ icon: Icon, title, description }: DriveEmptySt
         <Icon className="size-5" />
       </EmptyMedia>
       <EmptyHeader>
-        <EmptyTitle className="text-sm font-semibold text-[var(--sea-ink)]">{title}</EmptyTitle>
-        <EmptyDescription className="text-sm text-[var(--sea-ink-soft)]">
-          {description}
-        </EmptyDescription>
+        <EmptyTitle className="text-sm font-semibold text-(--sea-ink)">{title}</EmptyTitle>
+        <EmptyDescription className="text-sm text-(--sea-ink-soft)">{description}</EmptyDescription>
       </EmptyHeader>
     </Empty>
   );

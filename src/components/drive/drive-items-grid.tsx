@@ -46,12 +46,12 @@ export function DriveItemsGrid({
             }}
             className={`rounded-xl border p-4 text-left transition ${
               selected
-                ? "border-[var(--primary)] bg-[var(--surface)]"
-                : "border-border bg-card hover:bg-[var(--surface)]/60"
+                ? "border-primary bg-(--surface)"
+                : "border-border bg-card hover:bg-(--surface)/60"
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2 text-[var(--sea-ink)]">
+              <div className="flex items-center gap-2 text-(--sea-ink)">
                 {renderItemIcon(item)}
                 <p className="m-0 text-sm font-semibold">{item.name}</p>
               </div>
@@ -114,7 +114,7 @@ export function DriveItemsGrid({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <p className="mt-2 text-xs text-[var(--sea-ink-soft)]">
+            <p className="mt-2 text-xs text-(--sea-ink-soft)">
               {item.modified} · {item.type === "folder" ? "Folder" : formatBytes(item.bytes)}
             </p>
           </div>
