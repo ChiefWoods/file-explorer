@@ -6,7 +6,7 @@ import { loadDriveListing } from "#/lib/drive-listing.server-fns";
 import { safeInternalPath } from "#/lib/nav-redirect";
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/drive")({
+export const Route = createFileRoute("/drive/")({
   head: () => ({
     meta: [{ title: "My Drive - File Uploader" }],
   }),

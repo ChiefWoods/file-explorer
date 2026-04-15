@@ -1,13 +1,29 @@
 import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
 import { DriveFolderPage } from "#/components/drive/drive-folder-page";
+import { getSession } from "#/lib/auth.functions";
 import { loadDriveListing } from "#/lib/drive-listing.server-fns";
-import { createFileRoute } from "@tanstack/react-router";
+import { safeInternalPath } from "#/lib/nav-redirect";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/drive/$")({
   head: () => ({
     meta: [{ title: "My Drive - File Uploader" }],
   }),
+  beforeLoad: async ({ location }) => {
+    const session = await getSession();
+    if (!session?.session) {
+      const href = `${location.pathname}${location.searchStr}`;
+      throw redirect({
+        to: "/sign-in",
+        search: { redirect: safeInternalPath(href, "/drive") },
+      });
+    }
+    return {
+      user: session.user,
+      session: session.session,
+    };
+  },
   loader: async ({ params }) => {
     if (typeof window !== "undefined") {
       return null;
