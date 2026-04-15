@@ -71,6 +71,13 @@ export const Route = createRootRoute({
       />
     );
   },
+  notFoundComponent: () => (
+    <ErrorPage
+      code={404}
+      title="Page not found"
+      description="The page you requested could not be found."
+    />
+  ),
   shellComponent: RootDocument,
 });
 
