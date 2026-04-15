@@ -12,7 +12,7 @@ type DriveShellProps = {
   storagePct: number;
   isSigningOut: boolean;
   onSignOut: () => void;
-  title: string;
+  title: React.ReactNode;
   actions?: React.ReactNode;
   topContent?: React.ReactNode;
   children: React.ReactNode;
@@ -44,7 +44,7 @@ export function DriveShell({
           <section className="flex min-w-0 flex-1 flex-col gap-4 bg-[var(--bg-base)] p-6">
             <div className="flex flex-col gap-2">
               <div className="flex min-h-9 items-center justify-between gap-3">
-                <p className="m-0 text-lg font-bold text-[var(--sea-ink)]">{title}</p>
+                <div className="min-w-0 text-lg font-bold text-[var(--sea-ink)]">{title}</div>
                 <div className="flex min-h-9 items-center gap-2.5">{actions}</div>
               </div>
               {topContent}

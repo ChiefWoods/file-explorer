@@ -15,6 +15,7 @@ export function DriveItemsGrid({
   items,
   selectedIds,
   onToggleSelect,
+  onOpenFolder,
   onRenameItem,
   onDownloadItem,
   onShareItem,
@@ -32,6 +33,11 @@ export function DriveItemsGrid({
             role="button"
             tabIndex={0}
             onClick={() => onToggleSelect(item.id)}
+            onDoubleClick={() => {
+              if (item.type === "folder") {
+                onOpenFolder(item as DriveItemRecord & { type: "folder" });
+              }
+            }}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();

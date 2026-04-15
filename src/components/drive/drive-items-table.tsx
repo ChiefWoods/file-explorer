@@ -26,6 +26,7 @@ export function DriveItemsTable({
   items,
   selectedIds,
   onToggleSelect,
+  onOpenFolder,
   onRenameItem,
   onDownloadItem,
   onShareItem,
@@ -60,6 +61,11 @@ export function DriveItemsTable({
                 key={item.id}
                 tabIndex={0}
                 onClick={() => onToggleSelect(item.id)}
+                onDoubleClick={() => {
+                  if (item.type === "folder") {
+                    onOpenFolder(item as DriveTableItem & { type: "folder" });
+                  }
+                }}
                 data-state={selected ? "selected" : undefined}
                 className={cn(
                   "cursor-pointer outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 active:bg-muted/70",
