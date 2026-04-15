@@ -1,3 +1,5 @@
+import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
+
 import { DriveEmptyState } from "#/components/drive/drive-empty-state";
 import { DriveShell } from "#/components/drive/drive-shell";
 import { ErrorPage } from "#/components/shared/error-page";
@@ -15,7 +17,7 @@ import { authClient } from "#/lib/auth-client";
 import { getSession } from "#/lib/auth.functions";
 import { prisma } from "#/lib/db";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
-import { getFolderIdPath } from "#/lib/drive-repository";
+import { getDriveSidebarFolders, getFolderIdPath } from "#/lib/drive-repository";
 import { safeInternalPath } from "#/lib/nav-redirect";
 import { queryKeys } from "#/lib/query-keys";
 import { queryOptions, useQuery } from "@tanstack/react-query";
@@ -28,6 +30,7 @@ import { toast } from "sonner";
 
 type SharedLoaderData = {
   storageUsed: number;
+  sidebarFolders: DriveSidebarFolderNode[];
   links: Array<{
     id: string;
     folderId: string;
@@ -47,31 +50,35 @@ const getSharedLoaderData = createServerFn({ method: "GET" }).handler(
       throw new Error("Authentication required.");
     }
 
-    const aggregate = await prisma.file.aggregate({
-      where: { userId: session.user.id },
-      _sum: { bytes: true },
-    });
-    const links = await prisma.shareLink.findMany({
-      where: {
-        createdByUserId: session.user.id,
-        OR: [{ expiresAt: { gt: new Date() } }, { expiresAt: null }],
-      },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        folderId: true,
-        createdAt: true,
-        expiresAt: true,
-        folder: {
-          select: {
-            name: true,
+    const [aggregate, links, sidebarFolders] = await Promise.all([
+      prisma.file.aggregate({
+        where: { userId: session.user.id },
+        _sum: { bytes: true },
+      }),
+      prisma.shareLink.findMany({
+        where: {
+          createdByUserId: session.user.id,
+          OR: [{ expiresAt: { gt: new Date() } }, { expiresAt: null }],
+        },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          folderId: true,
+          createdAt: true,
+          expiresAt: true,
+          folder: {
+            select: {
+              name: true,
+            },
           },
         },
-      },
-    });
+      }),
+      getDriveSidebarFolders(session.user.id),
+    ]);
 
     return {
       storageUsed: aggregate._sum.bytes ?? 0,
+      sidebarFolders,
       links: await Promise.all(
         links.map(async (link) => {
           const folderPathIds = await getFolderIdPath(session.user.id, link.folderId);
@@ -136,6 +143,7 @@ function SharedPage() {
   const storageUsed = useMemo(() => data.storageUsed, [data]);
   const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
   const links = data.links;
+  const sidebarFolders = data.sidebarFolders;
 
   async function signOut() {
     if (isSigningOut) {
@@ -217,6 +225,7 @@ function SharedPage() {
       storagePct={storagePct}
       isSigningOut={isSigningOut}
       onSignOut={() => void signOut()}
+      nestedFolders={sidebarFolders}
       title="Shared"
     >
       {query.isPending && !query.data ? (

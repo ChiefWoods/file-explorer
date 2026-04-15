@@ -222,6 +222,7 @@ export function DriveFolderPage({
   const breadcrumbs = listing?.breadcrumbs ?? [];
   const activeFolderName = breadcrumbs.at(-1)?.name ?? null;
   const visibleBreadcrumbs = breadcrumbs.slice(1);
+  const sidebarNestedFolders = listing?.sidebarFolders ?? [];
 
   useEffect(() => {
     if (pathSegments.length === 0) {
@@ -918,6 +919,8 @@ export function DriveFolderPage({
       storagePct={storagePct}
       isSigningOut={isSigningOut}
       onSignOut={() => void signOut()}
+      currentFolderId={resolvedFolderId}
+      nestedFolders={sidebarNestedFolders}
       title={title}
       actions={
         <>

@@ -1,3 +1,5 @@
+import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
+
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import {
   DropdownMenu,
@@ -17,6 +19,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "#/components/ui/sidebar";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
@@ -38,6 +43,8 @@ type DriveSidebarProps = {
   storagePct: number;
   isSigningOut: boolean;
   onSignOut: () => void;
+  currentFolderId?: string;
+  nestedFolders?: DriveSidebarFolderNode[];
 };
 
 const DRIVE_SECTION_ITEMS: Array<{
@@ -55,10 +62,13 @@ export function DriveSidebar({
   storagePct,
   isSigningOut,
   onSignOut,
+  currentFolderId,
+  nestedFolders = [],
 }: DriveSidebarProps) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
+  const isDriveRootRoute = location.pathname === "/drive" || location.pathname === "/drive/";
   const activeSection: DriveSection = location.pathname.startsWith("/shared")
     ? "shared"
     : "my-drive";
@@ -66,7 +76,7 @@ export function DriveSidebar({
   const userEmail = user.email?.trim() || "No email";
 
   return (
-    <Sidebar className="border-border w-[264px] bg-(--sidebar) p-2">
+    <Sidebar className="w-[264px] border-border bg-(--sidebar) p-2">
       <SidebarHeader className="flex flex-row items-center gap-2.5">
         <Cloud className="size-6 text-(--primary)" aria-hidden />
         <p className="m-0 text-[17px] font-bold text-(--sea-ink)">File Uploader</p>
@@ -76,7 +86,8 @@ export function DriveSidebar({
         <SidebarGroup className="p-0">
           <SidebarMenu>
             {DRIVE_SECTION_ITEMS.map((item) => {
-              const isActive = activeSection === item.key;
+              const isActive =
+                item.key === "my-drive" ? isDriveRootRoute : activeSection === item.key;
               const Icon = item.icon;
               return (
                 <SidebarMenuItem key={item.key}>
@@ -93,12 +104,24 @@ export function DriveSidebar({
                     />
                     {item.label}
                   </SidebarMenuButton>
+                  {item.key === "my-drive" && nestedFolders.length > 0 && (
+                    <DriveSidebarFolderTree
+                      folders={nestedFolders}
+                      currentFolderId={currentFolderId}
+                      onSelect={(folderPath) =>
+                        void navigate({
+                          to: "/drive/$",
+                          params: { _splat: folderPath },
+                        })
+                      }
+                    />
+                  )}
                 </SidebarMenuItem>
               );
             })}
           </SidebarMenu>
         </SidebarGroup>
-        <div className="border-border rounded-xl border bg-(--surface) p-3.5">
+        <div className="rounded-xl border border-border bg-(--surface) p-3.5">
           <p className="m-0 text-xs font-semibold text-(--sea-ink)">Storage</p>
           <p className="mt-1 text-xs text-(--sea-ink-soft)">
             {formatBytes(storageUsed, { empty: "—" })} of{" "}
@@ -116,7 +139,7 @@ export function DriveSidebar({
             <DropdownMenu>
               <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />} className="h-12">
                 <Avatar className="size-8 rounded-lg">
-                  <AvatarFallback className="bg-muted text-muted-foreground rounded-lg">
+                  <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
                     <User className="size-4" />
                   </AvatarFallback>
                 </Avatar>
@@ -134,7 +157,7 @@ export function DriveSidebar({
               >
                 <DropdownMenuGroup className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
                   <Avatar className="size-8 rounded-lg">
-                    <AvatarFallback className="bg-muted text-muted-foreground rounded-lg">
+                    <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
                       <User className="size-4" />
                     </AvatarFallback>
                   </Avatar>
@@ -156,5 +179,39 @@ export function DriveSidebar({
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function DriveSidebarFolderTree({
+  folders,
+  currentFolderId,
+  onSelect,
+}: {
+  folders: DriveSidebarFolderNode[];
+  currentFolderId?: string;
+  onSelect: (folderPath: string) => void;
+}) {
+  return (
+    <SidebarMenuSub>
+      {folders.map((folder) => (
+        <SidebarMenuSubItem key={folder.id}>
+          <SidebarMenuSubButton
+            render={<button type="button" />}
+            isActive={folder.id === currentFolderId}
+            className="w-full justify-start"
+            onClick={() => onSelect(folder.path)}
+          >
+            {folder.name}
+          </SidebarMenuSubButton>
+          {folder.children.length > 0 && (
+            <DriveSidebarFolderTree
+              folders={folder.children}
+              currentFolderId={currentFolderId}
+              onSelect={onSelect}
+            />
+          )}
+        </SidebarMenuSubItem>
+      ))}
+    </SidebarMenuSub>
   );
 }

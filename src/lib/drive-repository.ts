@@ -1,3 +1,5 @@
+import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
+
 import { HttpError } from "#/lib/api/http";
 import { prisma } from "#/lib/db";
 
@@ -124,6 +126,51 @@ export async function getFolderBreadcrumbs(userId: string, folderId: string | nu
 export async function getFolderIdPath(userId: string, folderId: string): Promise<string[]> {
   const breadcrumbs = await getFolderBreadcrumbs(userId, folderId);
   return breadcrumbs.map((folder) => folder.id);
+}
+
+export async function getDriveSidebarFolders(userId: string): Promise<DriveSidebarFolderNode[]> {
+  const rootFolder = await ensureUserRootFolder(userId);
+  const allFolders = await prisma.folder.findMany({
+    where: { userId },
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      parentId: true,
+    },
+  });
+
+  const foldersByParentId = new Map<string, Array<{ id: string; name: string }>>();
+  for (const folder of allFolders) {
+    if (!folder.parentId) {
+      continue;
+    }
+
+    const siblings = foldersByParentId.get(folder.parentId);
+    if (siblings) {
+      siblings.push({ id: folder.id, name: folder.name });
+    } else {
+      foldersByParentId.set(folder.parentId, [{ id: folder.id, name: folder.name }]);
+    }
+  }
+
+  const buildChildren = (
+    parentId: string,
+    parentPathIds: string[] = [],
+  ): DriveSidebarFolderNode[] => {
+    const children = foldersByParentId.get(parentId) ?? [];
+    return children.map((folder) => {
+      const pathIds = [...parentPathIds, folder.id];
+      return {
+        id: folder.id,
+        name: folder.name,
+        path: pathIds.join("/"),
+        children: buildChildren(folder.id, pathIds),
+      };
+    });
+  };
+
+  return buildChildren(rootFolder.id);
 }
 
 export async function assertNoFolderCycle(

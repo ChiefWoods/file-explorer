@@ -3,7 +3,11 @@ import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 import { errorResponse, HttpError } from "#/lib/api/http";
 import { getOptionalAuthSession } from "#/lib/api/session";
 import { prisma } from "#/lib/db";
-import { ensureUserRootFolder, getFolderBreadcrumbs } from "#/lib/drive-repository";
+import {
+  ensureUserRootFolder,
+  getDriveSidebarFolders,
+  getFolderBreadcrumbs,
+} from "#/lib/drive-repository";
 import { readDriveViewModeFromCookie } from "#/lib/drive-view-mode";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -52,8 +56,9 @@ async function handleGetDriveListing(request: Request): Promise<Response> {
       }
     }
 
-    const [breadcrumbs, folders, files, storage] = await Promise.all([
+    const [breadcrumbs, sidebarFolders, folders, files, storage] = await Promise.all([
       getFolderBreadcrumbs(folder.userId, folder.id),
+      getDriveSidebarFolders(folder.userId),
       prisma.folder.findMany({
         where: {
           userId: folder.userId,
@@ -91,6 +96,7 @@ async function handleGetDriveListing(request: Request): Promise<Response> {
       isOwner,
       viewMode: readDriveViewModeFromCookie(request.headers.get("cookie")),
       breadcrumbs,
+      sidebarFolders,
       folders: folders.map((childFolder) => ({
         id: childFolder.id,
         name: childFolder.name,

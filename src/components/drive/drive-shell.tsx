@@ -1,3 +1,5 @@
+import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
+
 import { DriveSidebar } from "#/components/drive/drive-sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
 
@@ -12,6 +14,8 @@ type DriveShellProps = {
   storagePct: number;
   isSigningOut: boolean;
   onSignOut: () => void;
+  currentFolderId?: string;
+  nestedFolders?: DriveSidebarFolderNode[];
   title: React.ReactNode;
   actions?: React.ReactNode;
   topContent?: React.ReactNode;
@@ -24,6 +28,8 @@ export function DriveShell({
   storagePct,
   isSigningOut,
   onSignOut,
+  currentFolderId,
+  nestedFolders,
   title,
   actions,
   topContent,
@@ -39,6 +45,8 @@ export function DriveShell({
             storagePct={storagePct}
             isSigningOut={isSigningOut}
             onSignOut={onSignOut}
+            currentFolderId={currentFolderId}
+            nestedFolders={nestedFolders}
           />
 
           <section className="flex min-w-0 flex-1 flex-col gap-4 bg-(--bg-base) p-6">
