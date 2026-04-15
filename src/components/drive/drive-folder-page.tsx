@@ -61,8 +61,9 @@ import {
 import { Fragment, useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-type DriveItem = DriveItemRecord & { mimeType?: string };
+type DriveItem = DriveItemRecord & { mimeType?: string; modifiedAtMs: number };
 type TypeFilterValue = "folders" | string;
+type AddedFilterValue = "today" | "last-7-days" | "last-30-days" | "this-year" | "last-year";
 
 const MIME_TYPE_FILTER_OPTIONS = [...ALLOWED_UPLOAD_MIME_TYPES].sort();
 
@@ -106,6 +107,7 @@ function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
     type: "folder",
     name: folder.name,
     modified: formatModifiedAt(folder.modifiedAt),
+    modifiedAtMs: new Date(folder.modifiedAt).getTime(),
   }));
 
   const files: DriveItem[] = listing.files.map((file) => ({
@@ -113,6 +115,7 @@ function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
     type: "file",
     name: file.name,
     modified: formatModifiedAt(file.modifiedAt),
+    modifiedAtMs: new Date(file.modifiedAt).getTime(),
     bytes: file.bytes,
     mimeType: file.mimeType,
   }));
@@ -164,6 +167,7 @@ export function DriveFolderPage({
   const [generatedShareUrl, setGeneratedShareUrl] = useState("");
   const [didCopyShareLink, setDidCopyShareLink] = useState(false);
   const [typeFilter, setTypeFilter] = useState<TypeFilterValue | null>(null);
+  const [addedFilter, setAddedFilter] = useState<AddedFilterValue | null>(null);
   const [shareTargetFolder, setShareTargetFolder] = useState<
     (DriveItem & { type: "folder" }) | null
   >(null);
@@ -211,7 +215,7 @@ export function DriveFolderPage({
 
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [typeFilter]);
+  }, [typeFilter, addedFilter]);
 
   const storageUsed = listing?.storageUsedBytes ?? 0;
   const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
@@ -671,7 +675,41 @@ export function DriveFolderPage({
     return item.mimeType?.toLowerCase() === typeFilter.toLowerCase();
   }
 
-  const filteredItems = items.filter(matchesTypeFilter);
+  function matchesAddedFilter(item: DriveItem): boolean {
+    if (!addedFilter) {
+      return true;
+    }
+
+    if (!Number.isFinite(item.modifiedAtMs)) {
+      return false;
+    }
+
+    const now = new Date();
+    const itemDate = new Date(item.modifiedAtMs);
+    const nowYear = now.getFullYear();
+    const itemYear = itemDate.getFullYear();
+
+    if (addedFilter === "this-year") {
+      return itemYear === nowYear;
+    }
+    if (addedFilter === "last-year") {
+      return itemYear === nowYear - 1;
+    }
+
+    if (addedFilter === "today") {
+      return (
+        itemYear === nowYear &&
+        itemDate.getMonth() === now.getMonth() &&
+        itemDate.getDate() === now.getDate()
+      );
+    }
+
+    const lookbackDays = addedFilter === "last-7-days" ? 7 : 30;
+    const lookbackMs = lookbackDays * 24 * 60 * 60 * 1000;
+    return now.getTime() - item.modifiedAtMs <= lookbackMs;
+  }
+
+  const filteredItems = items.filter(matchesTypeFilter).filter(matchesAddedFilter);
 
   const content = (
     <DriveItemsView
@@ -687,8 +725,12 @@ export function DriveFolderPage({
       items={filteredItems}
       selectedIds={selectedIds}
       onToggleSelect={toggleSelect}
-      onOpenFolder={handleOpenFolder}
-      onRenameItem={handleRenameItem}
+      onOpenFolder={(item) => {
+        handleOpenFolder(item as DriveItem & { type: "folder" });
+      }}
+      onRenameItem={(item) => {
+        handleRenameItem(item as DriveItem);
+      }}
       onDownloadItem={(item) => {
         void downloadItem(item as DriveItem);
       }}
@@ -763,8 +805,68 @@ export function DriveFolderPage({
           ))}
         </SelectContent>
       </Select>
-      {typeFilter && (
-        <Button type="button" variant="ghost" size="sm" onClick={() => setTypeFilter(null)}>
+      <Select
+        value={addedFilter}
+        onValueChange={(value) =>
+          setAddedFilter(value ? (String(value) as AddedFilterValue) : null)
+        }
+      >
+        <SelectTrigger size="sm" className="min-w-[168px]">
+          <SelectValue>
+            {(value) => {
+              if (!value) {
+                return "Added";
+              }
+              if (value === "today") {
+                return "Today";
+              }
+              if (value === "last-7-days") {
+                return "Last 7 days";
+              }
+              if (value === "last-30-days") {
+                return "Last 30 days";
+              }
+              if (value === "this-year") {
+                return `This year (${new Date().getFullYear()})`;
+              }
+              if (value === "last-year") {
+                return `Last year (${new Date().getFullYear() - 1})`;
+              }
+              return "Added";
+            }}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent alignItemWithTrigger={false}>
+          <SelectItem value={null} label="Added">
+            Added
+          </SelectItem>
+          <SelectItem value="today" label="Today">
+            Today
+          </SelectItem>
+          <SelectItem value="last-7-days" label="Last 7 days">
+            Last 7 days
+          </SelectItem>
+          <SelectItem value="last-30-days" label="Last 30 days">
+            Last 30 days
+          </SelectItem>
+          <SelectItem value="this-year" label={`This year (${new Date().getFullYear()})`}>
+            This year ({new Date().getFullYear()})
+          </SelectItem>
+          <SelectItem value="last-year" label={`Last year (${new Date().getFullYear() - 1})`}>
+            Last year ({new Date().getFullYear() - 1})
+          </SelectItem>
+        </SelectContent>
+      </Select>
+      {(typeFilter || addedFilter) && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setTypeFilter(null);
+            setAddedFilter(null);
+          }}
+        >
           Clear filters
         </Button>
       )}
