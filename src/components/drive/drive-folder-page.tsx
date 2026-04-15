@@ -904,7 +904,7 @@ export function DriveFolderPage({
                 </DialogDescription>
               </DialogHeader>
               <form
-                className="min-w-0 space-y-4 overflow-x-hidden"
+                className="min-w-0 space-y-4 overflow-x-hidden overflow-y-hidden"
                 onSubmit={(event) => {
                   event.preventDefault();
                   void uploadForm.handleSubmit().catch((error: unknown) => {
