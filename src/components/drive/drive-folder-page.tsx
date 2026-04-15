@@ -1101,9 +1101,14 @@ export function DriveFolderPage({
             </DialogDescription>
           </DialogHeader>
           {existingShareReminder && (
-            <p className="border-border bg-muted/40 rounded-md border px-3 py-2 text-sm text-(--sea-ink-soft)">
-              {existingShareReminder}
-            </p>
+            <div className="space-y-2">
+              <p className="border-border bg-muted/40 rounded-md border px-3 py-2 text-sm text-(--sea-ink-soft)">
+                {existingShareReminder}
+              </p>
+              <p className="text-xs text-(--sea-ink-soft)">
+                Generating a new link will replace the current share link.
+              </p>
+            </div>
           )}
 
           <div className="space-y-2">
