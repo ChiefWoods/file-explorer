@@ -3,6 +3,12 @@ import { defineConfig } from "oxlint";
 export default defineConfig({
   $schema: "./node_modules/oxlint/configuration_schema.json",
   ignorePatterns: ["dist", "src/routeTree.gen.ts"],
+  jsPlugins: [{ name: "tailwindcss", specifier: "eslint-plugin-tailwindcss" }],
+  settings: {
+    tailwindcss: {
+      config: {},
+    },
+  },
   overrides: [
     {
       files: ["**/*.{ts,tsx}"],
