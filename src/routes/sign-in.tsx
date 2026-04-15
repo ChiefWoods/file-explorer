@@ -114,13 +114,9 @@ function SignInPage() {
     },
   });
 
-  function goTab(next: AuthMode) {
-    setMode(next);
-  }
-
   function onModeChange(next: unknown) {
     if (next === "sign-in" || next === "sign-up") {
-      goTab(next);
+      setMode(next);
     }
   }
 
