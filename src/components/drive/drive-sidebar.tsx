@@ -23,6 +23,7 @@ import {
   useSidebar,
 } from "#/components/ui/sidebar";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
+import { formatBytes } from "#/lib/format-bytes";
 import ThemeToggle from "../ThemeToggle";
 
 type DriveSection = "my-drive" | "shared";
@@ -30,14 +31,6 @@ type SidebarUser = {
   name?: string | null;
   email?: string | null;
 };
-
-function formatBytes(bytes?: number) {
-  if (typeof bytes !== "number") return "—";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-  return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-}
 
 type DriveSidebarProps = {
   user: SidebarUser;
@@ -108,7 +101,8 @@ export function DriveSidebar({
         <div className="rounded-xl border border-border bg-[var(--surface)] p-3.5">
           <p className="m-0 text-xs font-semibold text-[var(--sea-ink)]">Storage</p>
           <p className="mt-1 text-xs text-[var(--sea-ink-soft)]">
-            {formatBytes(storageUsed)} of {formatBytes(USER_STORAGE_LIMIT_BYTES)} used
+            {formatBytes(storageUsed, { empty: "—" })} of{" "}
+            {formatBytes(USER_STORAGE_LIMIT_BYTES, { empty: "—" })} used
           </p>
           <Progress className="mt-2" value={storagePct} />
         </div>
