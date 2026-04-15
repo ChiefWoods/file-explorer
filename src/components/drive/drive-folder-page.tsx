@@ -24,6 +24,13 @@ import {
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
 import { authClient } from "#/lib/auth-client";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { fetchDriveListing } from "#/lib/drive-listing";
@@ -33,6 +40,7 @@ import { formatBytes } from "#/lib/format-bytes";
 import { queryKeys } from "#/lib/query-keys";
 import { uploadFilesFormSchema } from "#/lib/schemas/drive-forms";
 import { SHARE_DURATION_PRESETS, type ShareDurationPreset } from "#/lib/share-duration";
+import { ALLOWED_UPLOAD_MIME_TYPES } from "#/lib/upload-policy";
 import { useForm } from "@tanstack/react-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
@@ -54,6 +62,25 @@ import { Fragment, useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 type DriveItem = DriveItemRecord & { mimeType?: string };
+type TypeFilterValue = "folders" | string;
+
+const MIME_TYPE_FILTER_OPTIONS = [...ALLOWED_UPLOAD_MIME_TYPES].sort();
+
+function formatMimeTypeLabel(mimeType: string): string {
+  const [topLevel, subTypeRaw] = mimeType.split("/");
+  const subType = (subTypeRaw ?? mimeType).split(".").pop() ?? mimeType;
+  const normalized = subType.replace(/[-_+.]/g, " ").trim();
+  const label =
+    normalized.length > 0
+      ? normalized.replace(/\b\w/g, (char) => char.toUpperCase())
+      : mimeType.toUpperCase();
+
+  if (topLevel === "application" && label.toLowerCase() === "json") {
+    return "JSON";
+  }
+
+  return label;
+}
 
 type DriveFolderPageProps = {
   user: {
@@ -95,15 +122,15 @@ function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
 
 function DriveItemIcon({ item }: { item: DriveItem }) {
   if (item.type === "folder") {
-    return <FolderOpen className="size-4 text-primary" aria-hidden />;
+    return <FolderOpen className="text-primary size-4" aria-hidden />;
   }
   if (item.mimeType?.startsWith("image/")) {
-    return <FileImage className="size-4 text-primary" aria-hidden />;
+    return <FileImage className="text-primary size-4" aria-hidden />;
   }
   if (item.mimeType?.includes("csv") || item.mimeType?.includes("excel")) {
-    return <FileSpreadsheet className="size-4 text-primary" aria-hidden />;
+    return <FileSpreadsheet className="text-primary size-4" aria-hidden />;
   }
-  return <FileText className="size-4 text-primary" aria-hidden />;
+  return <FileText className="text-primary size-4" aria-hidden />;
 }
 
 export function DriveFolderPage({
@@ -136,6 +163,7 @@ export function DriveFolderPage({
   const [shareDuration, setShareDuration] = useState<ShareDurationPreset>("7d");
   const [generatedShareUrl, setGeneratedShareUrl] = useState("");
   const [didCopyShareLink, setDidCopyShareLink] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<TypeFilterValue | null>(null);
   const [shareTargetFolder, setShareTargetFolder] = useState<
     (DriveItem & { type: "folder" }) | null
   >(null);
@@ -180,6 +208,10 @@ export function DriveFolderPage({
       window.clearTimeout(timeout);
     };
   }, [didCopyShareLink]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [typeFilter]);
 
   const storageUsed = listing?.storageUsedBytes ?? 0;
   const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
@@ -626,6 +658,21 @@ export function DriveFolderPage({
       });
   }
 
+  function matchesTypeFilter(item: DriveItem): boolean {
+    if (!typeFilter) {
+      return true;
+    }
+    if (typeFilter === "folders") {
+      return item.type === "folder";
+    }
+    if (item.type === "folder") {
+      return false;
+    }
+    return item.mimeType?.toLowerCase() === typeFilter.toLowerCase();
+  }
+
+  const filteredItems = items.filter(matchesTypeFilter);
+
   const content = (
     <DriveItemsView
       viewMode={viewMode}
@@ -637,7 +684,7 @@ export function DriveFolderPage({
       pendingTitle="Loading folder..."
       emptyTitle="This folder is empty"
       emptyDescription="Upload files or create a folder to get started."
-      items={items}
+      items={filteredItems}
       selectedIds={selectedIds}
       onToggleSelect={toggleSelect}
       onOpenFolder={handleOpenFolder}
@@ -654,6 +701,74 @@ export function DriveFolderPage({
       formatBytes={formatBytes}
       renderItemIcon={(item) => <DriveItemIcon item={item as DriveItem} />}
     />
+  );
+
+  const selectionRibbon = (
+    <div className="border-border bg-card flex h-full items-center justify-between rounded-xl border px-3 py-2">
+      <div className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          onClick={clearSelection}
+          aria-label="Clear selection"
+        >
+          <X />
+        </Button>
+        <span>{selectedCount} selected</span>
+      </div>
+      <Button
+        type="button"
+        variant="destructive"
+        size="sm"
+        onClick={() => void deleteSelected()}
+        disabled={isDeletingSelected || selectedCount === 0}
+      >
+        <Trash2 data-icon="inline-start" />
+        {isDeletingSelected ? "Deleting..." : "Delete"}
+      </Button>
+    </div>
+  );
+
+  const filterRibbon = (
+    <div className="flex h-full items-center gap-2">
+      <Select
+        value={typeFilter}
+        onValueChange={(value) => setTypeFilter(value ? (String(value) as TypeFilterValue) : null)}
+      >
+        <SelectTrigger size="sm" className="min-w-[144px]">
+          <SelectValue>
+            {(value) => {
+              if (!value) {
+                return "Type";
+              }
+              if (value === "folders") {
+                return "Folders";
+              }
+              return formatMimeTypeLabel(String(value));
+            }}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent alignItemWithTrigger={false}>
+          <SelectItem value={null} label="Type">
+            Type
+          </SelectItem>
+          <SelectItem value="folders" label="Folders">
+            Folders
+          </SelectItem>
+          {MIME_TYPE_FILTER_OPTIONS.map((mimeType) => (
+            <SelectItem key={mimeType} value={mimeType} label={formatMimeTypeLabel(mimeType)}>
+              {formatMimeTypeLabel(mimeType)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {typeFilter && (
+        <Button type="button" variant="ghost" size="sm" onClick={() => setTypeFilter(null)}>
+          Clear filters
+        </Button>
+      )}
+    </div>
   );
 
   return (
@@ -780,32 +895,10 @@ export function DriveFolderPage({
         </>
       }
       topContent={
-        selectedCount > 0 && (
-          <div className="border-border bg-card flex items-center justify-between rounded-xl border px-3 py-2">
-            <div className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={clearSelection}
-                aria-label="Clear selection"
-              >
-                <X />
-              </Button>
-              <span>{selectedCount} selected</span>
-            </div>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={() => void deleteSelected()}
-              disabled={isDeletingSelected || selectedCount === 0}
-            >
-              <Trash2 data-icon="inline-start" />
-              {isDeletingSelected ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
-        )
+        <div className="h-11">
+          {selectedCount > 0 && selectionRibbon}
+          {selectedCount === 0 && filterRibbon}
+        </div>
       }
     >
       {content}
