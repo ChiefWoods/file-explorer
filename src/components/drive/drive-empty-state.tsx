@@ -16,7 +16,7 @@ type DriveEmptyStateProps = {
 
 export function DriveEmptyState({ icon: Icon, title, description }: DriveEmptyStateProps) {
   return (
-    <Empty className="min-h-0 flex-none border border-border border-solid bg-card p-8">
+    <Empty className="border-border bg-card min-h-0 flex-none border border-solid p-8">
       <EmptyMedia variant="icon">
         <Icon className="size-5" />
       </EmptyMedia>

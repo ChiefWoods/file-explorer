@@ -706,7 +706,7 @@ export function DriveFolderPage({
                           onFilesChange={field.handleChange}
                         />
                         {errors.length > 0 && (
-                          <p className="text-xs text-destructive">{errors.join(" ")}</p>
+                          <p className="text-destructive text-xs">{errors.join(" ")}</p>
                         )}
                       </div>
                     );
@@ -757,7 +757,7 @@ export function DriveFolderPage({
             </DialogContent>
           </Dialog>
 
-          <div className="flex items-center rounded-[10px] border border-border bg-card p-0.5">
+          <div className="border-border bg-card flex items-center rounded-[10px] border p-0.5">
             <Button
               type="button"
               variant={viewMode === "list" ? "secondary" : "ghost"}
@@ -781,7 +781,7 @@ export function DriveFolderPage({
       }
       topContent={
         selectedCount > 0 && (
-          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2">
+          <div className="border-border bg-card flex items-center justify-between rounded-xl border px-3 py-2">
             <div className="flex items-center gap-2.5 text-sm text-[var(--sea-ink)]">
               <Button
                 type="button"
@@ -870,7 +870,7 @@ export function DriveFolderPage({
             </DialogDescription>
           </DialogHeader>
           {existingShareReminder && (
-            <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-[var(--sea-ink-soft)]">
+            <p className="border-border bg-muted/40 rounded-md border px-3 py-2 text-sm text-[var(--sea-ink-soft)]">
               {existingShareReminder}
             </p>
           )}

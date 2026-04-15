@@ -66,7 +66,7 @@ export function DriveSidebar({
   const userEmail = user.email?.trim() || "No email";
 
   return (
-    <Sidebar className="w-[264px] border-border bg-[var(--sidebar)] p-2">
+    <Sidebar className="border-border w-[264px] bg-[var(--sidebar)] p-2">
       <SidebarHeader className="flex flex-row items-center gap-2.5">
         <Cloud className="size-6 text-[var(--primary)]" aria-hidden />
         <p className="m-0 text-[17px] font-bold text-[var(--sea-ink)]">File Uploader</p>
@@ -98,7 +98,7 @@ export function DriveSidebar({
             })}
           </SidebarMenu>
         </SidebarGroup>
-        <div className="rounded-xl border border-border bg-[var(--surface)] p-3.5">
+        <div className="border-border rounded-xl border bg-[var(--surface)] p-3.5">
           <p className="m-0 text-xs font-semibold text-[var(--sea-ink)]">Storage</p>
           <p className="mt-1 text-xs text-[var(--sea-ink-soft)]">
             {formatBytes(storageUsed, { empty: "—" })} of{" "}
@@ -110,13 +110,13 @@ export function DriveSidebar({
 
       <ThemeToggle />
 
-      <SidebarFooter className="flex flex-col gap-2.5 p-0 mt-4">
+      <SidebarFooter className="mt-4 flex flex-col gap-2.5 p-0">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />} className="h-12">
                 <Avatar className="size-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
+                  <AvatarFallback className="bg-muted text-muted-foreground rounded-lg">
                     <User className="size-4" />
                   </AvatarFallback>
                 </Avatar>
@@ -134,7 +134,7 @@ export function DriveSidebar({
               >
                 <DropdownMenuGroup className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
                   <Avatar className="size-8 rounded-lg">
-                    <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
+                    <AvatarFallback className="bg-muted text-muted-foreground rounded-lg">
                       <User className="size-4" />
                     </AvatarFallback>
                   </Avatar>

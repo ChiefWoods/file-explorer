@@ -127,8 +127,8 @@ function SignInPage() {
   return (
     <>
       <Header />
-      <main className="page-wrap px-4 pb-16 pt-10">
-        <div className="mx-auto w-full max-w-md island-shell rounded-2xl p-6 sm:p-8">
+      <main className="page-wrap px-4 pt-10 pb-16">
+        <div className="island-shell mx-auto w-full max-w-md rounded-2xl p-6 sm:p-8">
           <Tabs value={mode} onValueChange={onModeChange} className="mb-0 gap-0">
             <TabsList aria-label="sign-in and sign-up" className="mb-6" variant="line">
               <TabsTrigger value="sign-in">Sign In</TabsTrigger>

@@ -232,23 +232,23 @@ function SharedPage() {
           description="Create a share link from a folder menu and it will appear here."
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-border bg-card overflow-hidden rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+                <TableHead className="px-4 py-2 text-xs font-semibold tracking-wide text-[var(--sea-ink-soft)] uppercase">
                   Folder
                 </TableHead>
-                <TableHead className="w-[1%] whitespace-nowrap px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] uppercase">
                   Created
                 </TableHead>
-                <TableHead className="w-[1%] whitespace-nowrap px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] uppercase">
                   Expires
                 </TableHead>
-                <TableHead className="w-[240px] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+                <TableHead className="w-[240px] px-4 py-2 text-xs font-semibold tracking-wide text-[var(--sea-ink-soft)] uppercase">
                   Link
                 </TableHead>
-                <TableHead className="w-[1%] whitespace-nowrap px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] uppercase">
                   Actions
                 </TableHead>
               </TableRow>
@@ -259,14 +259,14 @@ function SharedPage() {
                   <TableCell className="px-4 py-3 text-left text-sm text-[var(--sea-ink)]">
                     {link.folderName}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap px-4 py-3 text-right text-sm text-[var(--sea-ink-soft)]">
+                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-[var(--sea-ink-soft)]">
                     {new Date(link.createdAt).toLocaleDateString(undefined, {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
                     })}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap px-4 py-3 text-right text-sm text-[var(--sea-ink-soft)]">
+                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-[var(--sea-ink-soft)]">
                     {link.expiresAt
                       ? new Date(link.expiresAt).toLocaleDateString(undefined, {
                           month: "short",
@@ -278,7 +278,7 @@ function SharedPage() {
                   <TableCell className="px-4 py-3">
                     <p className="truncate text-sm text-[var(--sea-ink-soft)]">{link.url}</p>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap px-4 py-3 text-right">
+                  <TableCell className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1">
                       <Button
                         type="button"

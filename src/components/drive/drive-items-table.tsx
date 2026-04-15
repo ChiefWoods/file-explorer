@@ -35,20 +35,20 @@ export function DriveItemsTable({
   renderItemIcon,
 }: DriveItemsTableProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="border-border bg-card overflow-hidden rounded-xl border">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+            <TableHead className="px-4 py-2 text-xs font-semibold tracking-wide text-[var(--sea-ink-soft)] uppercase">
               Name
             </TableHead>
-            <TableHead className="w-[1%] whitespace-nowrap px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+            <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] uppercase">
               Last Modified
             </TableHead>
-            <TableHead className="w-[1%] whitespace-nowrap px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+            <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] uppercase">
               Size
             </TableHead>
-            <TableHead className="w-[40px] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+            <TableHead className="w-[40px] px-4 py-2 text-xs font-semibold tracking-wide text-[var(--sea-ink-soft)] uppercase">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>
@@ -78,10 +78,10 @@ export function DriveItemsTable({
                     {item.name}
                   </span>
                 </TableCell>
-                <TableCell className="whitespace-nowrap px-4 py-3 text-right text-sm text-[var(--sea-ink-soft)]">
+                <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-[var(--sea-ink-soft)]">
                   {item.modified}
                 </TableCell>
-                <TableCell className="whitespace-nowrap px-4 py-3 text-right text-sm text-[var(--sea-ink-soft)]">
+                <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-[var(--sea-ink-soft)]">
                   {item.type === "folder" ? "" : formatBytes(item.bytes)}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">

@@ -44,10 +44,10 @@ export function ErrorPage({
           <AlertTriangle className="size-5" />
         </EmptyMedia>
         <EmptyHeader>
-          <EmptyTitle className="text-base font-semibold text-destructive">
+          <EmptyTitle className="text-destructive text-base font-semibold">
             {code} · {title}
           </EmptyTitle>
-          <EmptyDescription className="text-sm text-destructive/85">{description}</EmptyDescription>
+          <EmptyDescription className="text-destructive/85 text-sm">{description}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <a href="/" className={buttonVariants({ variant: "outline", size: "sm" })}>

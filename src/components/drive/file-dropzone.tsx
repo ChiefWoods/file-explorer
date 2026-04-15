@@ -77,7 +77,7 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
         }}
       >
         {files.length > 0 ? (
-          <ul className="max-h-28 space-y-1 overflow-auto rounded-md bg-card p-2 text-left">
+          <ul className="bg-card max-h-28 space-y-1 overflow-auto rounded-md p-2 text-left">
             {files.map((file, index) => {
               const ItemIcon = getFileTypeIcon(file);
               return (
