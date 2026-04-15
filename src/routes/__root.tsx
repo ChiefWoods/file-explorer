@@ -3,6 +3,7 @@ import { HeadContent, Scripts, createRootRoute, redirect } from "@tanstack/react
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 
+import { ErrorPage } from "#/components/shared/error-page";
 import { getSession } from "#/lib/auth.functions";
 
 import appCss from "../styles.css?url";
@@ -59,14 +60,15 @@ export const Route = createRootRoute({
       return null;
     }
 
+    const code = getErrorCode(error);
     const message = error instanceof Error ? error.message : "An unexpected error occurred.";
+
     return (
-      <main className="page-wrap px-4 pb-16 pt-10">
-        <div className="mx-auto w-full max-w-2xl rounded-2xl border border-destructive/35 bg-destructive/10 p-6">
-          <h1 className="m-0 text-lg font-semibold text-destructive">Something went wrong</h1>
-          <p className="mt-2 text-sm text-destructive/90">{message}</p>
-        </div>
-      </main>
+      <ErrorPage
+        code={code}
+        title={code === 404 ? "Page not found" : "Request failed"}
+        description={message}
+      />
     );
   },
   shellComponent: RootDocument,
@@ -82,6 +84,22 @@ function isAbortLikeError(error: unknown): boolean {
     "message" in error && typeof error.message === "string" ? error.message.toLowerCase() : "";
 
   return name === "AbortError" || message.includes("abort") || message.includes("cancel");
+}
+
+function getErrorCode(error: unknown): number {
+  if (typeof error !== "object" || error === null) {
+    return 404;
+  }
+
+  if ("status" in error && typeof error.status === "number") {
+    return error.status;
+  }
+
+  if ("statusCode" in error && typeof error.statusCode === "number") {
+    return error.statusCode;
+  }
+
+  return 404;
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {

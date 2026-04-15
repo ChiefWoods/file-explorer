@@ -7,8 +7,8 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { DriveEmptyState } from "#/components/drive/drive-empty-state";
-import { DriveErrorState } from "#/components/drive/drive-error-state";
 import { DriveShell } from "#/components/drive/drive-shell";
+import { ErrorPage } from "#/components/shared/error-page";
 import { authClient } from "#/lib/auth-client";
 import { getSession } from "#/lib/auth.functions";
 import { auth } from "#/lib/auth";
@@ -216,7 +216,8 @@ function SharedPage() {
       {query.isPending && !query.data ? (
         <DriveEmptyState icon={Share2} title="Loading shared links..." description="" />
       ) : query.isError ? (
-        <DriveErrorState
+        <ErrorPage
+          compact
           title="Could not load shared links"
           description={
             query.error instanceof Error

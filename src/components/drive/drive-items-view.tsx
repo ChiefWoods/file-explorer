@@ -1,9 +1,9 @@
 import { FolderOpen } from "lucide-react";
 
 import { DriveEmptyState } from "#/components/drive/drive-empty-state";
-import { DriveErrorState } from "#/components/drive/drive-error-state";
 import { DriveItemsGrid } from "#/components/drive/drive-items-grid";
 import { DriveItemsTable } from "#/components/drive/drive-items-table";
+import { ErrorPage } from "#/components/shared/error-page";
 import type { DriveItemsViewProps } from "#/components/drive/drive-items.types";
 
 type DriveItemsStateViewProps = DriveItemsViewProps & {
@@ -32,7 +32,8 @@ export function DriveItemsView({
 
   if (isError) {
     return (
-      <DriveErrorState
+      <ErrorPage
+        compact
         title="Could not load drive"
         description={errorMessage ?? "Something went wrong while loading your files."}
       />
