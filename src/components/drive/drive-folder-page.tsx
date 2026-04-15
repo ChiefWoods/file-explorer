@@ -295,22 +295,31 @@ export function DriveFolderPage({
         formData.append("files", file);
       }
 
-      const response = await fetch("/api/drive/uploads", {
-        method: "POST",
-        body: formData,
+      const uploadPromise = (async () => {
+        const response = await fetch("/api/drive/uploads", {
+          method: "POST",
+          body: formData,
+        });
+        const json = (await response.json()) as { error?: { message?: string } };
+
+        if (!response.ok) {
+          throw new Error(json.error?.message ?? "Could not upload files.");
+        }
+
+        setUploadDialogOpen(false);
+        uploadForm.reset();
+        await refreshDriveListing();
+        return value.files.length;
+      })();
+
+      toast.promise(uploadPromise, {
+        loading: "Uploading files...",
+        success: (fileCount) =>
+          fileCount === 1 ? "File uploaded." : `${fileCount} files uploaded.`,
+        error: (error) => (error instanceof Error ? error.message : "Could not upload files."),
       });
-      const json = (await response.json()) as { error?: { message?: string } };
 
-      if (!response.ok) {
-        throw new Error(json.error?.message ?? "Could not upload files.");
-      }
-
-      setUploadDialogOpen(false);
-      uploadForm.reset();
-      await refreshDriveListing();
-      toast.success(
-        value.files.length === 1 ? "File uploaded." : `${value.files.length} files uploaded.`,
-      );
+      await uploadPromise;
     },
   });
 
@@ -409,7 +418,6 @@ export function DriveFolderPage({
     }
 
     await refreshDriveListing();
-    toast.success(`${item.type === "folder" ? "Folder" : "File"} renamed.`);
   }
 
   async function downloadItem(item: DriveItem) {
@@ -494,51 +502,62 @@ export function DriveFolderPage({
 
     setIsDeletingSelected(true);
     try {
-      const selectedItems = items.filter((item) => selectedIds.has(item.id));
-      const results = await Promise.allSettled(
-        selectedItems.map(async (item) => {
-          await deleteDriveItem(item);
-          return item.id;
-        }),
-      );
-
-      const failedItemIds = new Set<string>();
-      let successCount = 0;
-      let firstErrorMessage: string | null = null;
-
-      for (let index = 0; index < results.length; index += 1) {
-        const result = results[index];
-        if (result.status === "fulfilled") {
-          successCount += 1;
-          continue;
-        }
-
-        failedItemIds.add(selectedItems[index].id);
-        if (!firstErrorMessage && result.reason instanceof Error) {
-          firstErrorMessage = result.reason.message;
-        }
-      }
-
-      await refreshDriveListing();
-      setSelectedIds(failedItemIds);
-
-      if (successCount > 0) {
-        toast.success(successCount === 1 ? "1 item deleted." : `${successCount} items deleted.`);
-      }
-
-      if (failedItemIds.size > 0) {
-        toast.error(
-          firstErrorMessage ??
-            `${failedItemIds.size} item${failedItemIds.size > 1 ? "s" : ""} could not be deleted.`,
+      const deletePromise = (async () => {
+        const selectedItems = items.filter((item) => selectedIds.has(item.id));
+        const results = await Promise.allSettled(
+          selectedItems.map(async (item) => {
+            await deleteDriveItem(item);
+            return item.id;
+          }),
         );
-      }
+
+        const failedItemIds = new Set<string>();
+        let successCount = 0;
+        let firstErrorMessage: string | null = null;
+
+        for (let index = 0; index < results.length; index += 1) {
+          const result = results[index];
+          if (result.status === "fulfilled") {
+            successCount += 1;
+            continue;
+          }
+
+          failedItemIds.add(selectedItems[index].id);
+          if (!firstErrorMessage && result.reason instanceof Error) {
+            firstErrorMessage = result.reason.message;
+          }
+        }
+
+        await refreshDriveListing();
+        setSelectedIds(failedItemIds);
+
+        if (failedItemIds.size > 0) {
+          const prefix =
+            successCount > 0 ? `Deleted ${successCount} item${successCount > 1 ? "s" : ""}, ` : "";
+          throw new Error(
+            firstErrorMessage ??
+              `${prefix}${failedItemIds.size} item${failedItemIds.size > 1 ? "s" : ""} could not be deleted.`,
+          );
+        }
+
+        return { successCount };
+      })();
+
+      toast.promise(deletePromise, {
+        loading: "Deleting selected items...",
+        success: ({ successCount }) =>
+          successCount === 1 ? "1 item deleted." : `${successCount} items deleted.`,
+        error: (error) => (error instanceof Error ? error.message : "Could not delete items."),
+      });
+
+      await deletePromise;
     } finally {
       setIsDeletingSelected(false);
     }
   }
 
   async function handleDeleteItem(item: DriveItem) {
-    try {
+    const deletePromise = (async () => {
       await deleteDriveItem(item);
       await refreshDriveListing();
       setSelectedIds((prev) => {
@@ -546,10 +565,16 @@ export function DriveFolderPage({
         next.delete(item.id);
         return next;
       });
-      toast.success(`${item.type === "file" ? "File" : "Folder"} deleted.`);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not delete item.");
-    }
+      return item.type;
+    })();
+
+    toast.promise(deletePromise, {
+      loading: `Deleting ${item.type}...`,
+      success: (itemType) => `${itemType === "file" ? "File" : "Folder"} deleted.`,
+      error: (error) => (error instanceof Error ? error.message : "Could not delete item."),
+    });
+
+    await deletePromise;
   }
 
   function handleRenameItem(item: DriveItem) {
@@ -567,12 +592,18 @@ export function DriveFolderPage({
 
     setIsRenamingItem(true);
     try {
-      await renameItem(renameTargetItem, renameValue);
+      const renamePromise = renameItem(renameTargetItem, renameValue);
+      toast.promise(renamePromise, {
+        loading: `Renaming ${renameTargetItem.type}...`,
+        success: `${renameTargetItem.type === "folder" ? "Folder" : "File"} renamed.`,
+        error: (error) => (error instanceof Error ? error.message : "Could not rename item."),
+      });
+      await renamePromise;
       setRenameDialogOpen(false);
       setRenameTargetItem(null);
       setRenameValue("");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not rename item.");
+    } catch {
+      // toast.promise handles the error UI.
     } finally {
       setIsRenamingItem(false);
     }
@@ -624,23 +655,30 @@ export function DriveFolderPage({
 
     setIsCreatingFolder(true);
     try {
-      const response = await fetch("/api/drive/folders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, parentId: resolvedFolderId }),
+      const createPromise = (async () => {
+        const response = await fetch("/api/drive/folders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, parentId: resolvedFolderId }),
+        });
+        const json = (await response.json()) as { error?: { message?: string } };
+
+        if (!response.ok) {
+          throw new Error(json.error?.message ?? "Could not create folder.");
+        }
+
+        setNewFolderName("");
+        setFolderDialogOpen(false);
+        await refreshDriveListing();
+      })();
+
+      toast.promise(createPromise, {
+        loading: "Creating folder...",
+        success: "Folder created.",
+        error: (error) => (error instanceof Error ? error.message : "Could not create folder."),
       });
-      const json = (await response.json()) as { error?: { message?: string } };
 
-      if (!response.ok) {
-        throw new Error(json.error?.message ?? "Could not create folder.");
-      }
-
-      setNewFolderName("");
-      setFolderDialogOpen(false);
-      await refreshDriveListing();
-      toast.success("Folder created.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not create folder.");
+      await createPromise;
     } finally {
       setIsCreatingFolder(false);
     }
@@ -907,9 +945,7 @@ export function DriveFolderPage({
                 className="min-w-0 space-y-4 overflow-x-hidden overflow-y-hidden"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void uploadForm.handleSubmit().catch((error: unknown) => {
-                    toast.error(error instanceof Error ? error.message : "Could not upload files.");
-                  });
+                  void uploadForm.handleSubmit().catch(() => {});
                 }}
               >
                 <uploadForm.Field

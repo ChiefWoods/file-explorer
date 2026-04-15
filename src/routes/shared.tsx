@@ -166,21 +166,28 @@ function SharedPage() {
 
     setDeletingShareIds((prev) => new Set(prev).add(shareId));
     try {
-      const response = await fetch(`/api/drive/share/${shareId}`, {
-        method: "DELETE",
+      const deletePromise = (async () => {
+        const response = await fetch(`/api/drive/share/${shareId}`, {
+          method: "DELETE",
+        });
+        const json = (await response.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
+
+        if (!response.ok) {
+          throw new Error(json?.error?.message ?? "Could not delete share link.");
+        }
+
+        await query.refetch();
+      })();
+
+      toast.promise(deletePromise, {
+        loading: "Deleting share link...",
+        success: "Share link deleted.",
+        error: (error) => (error instanceof Error ? error.message : "Could not delete share link."),
       });
-      const json = (await response.json().catch(() => null)) as {
-        error?: { message?: string };
-      } | null;
 
-      if (!response.ok) {
-        throw new Error(json?.error?.message ?? "Could not delete share link.");
-      }
-
-      await query.refetch();
-      toast.success("Share link deleted.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not delete share link.");
+      await deletePromise;
     } finally {
       setDeletingShareIds((prev) => {
         const next = new Set(prev);
