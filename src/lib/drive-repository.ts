@@ -1,5 +1,5 @@
-import { prisma } from "#/lib/db";
 import { HttpError } from "#/lib/api/http";
+import { prisma } from "#/lib/db";
 
 export const ROOT_FOLDER_NAME = "Root";
 

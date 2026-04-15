@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { createShareToken, isShareExpired, resolveShareExpiry } from "#/lib/share-link";
+import { describe, expect, it } from "vitest";
 
 describe("share-link helpers", () => {
   it("resolves preset durations from now", () => {

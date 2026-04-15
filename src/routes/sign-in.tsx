@@ -1,8 +1,3 @@
-import { useForm } from "@tanstack/react-form";
-import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
-import { toast } from "sonner";
-
 import { SocialSignIn } from "#/components/auth/social-sign-in";
 import Header from "#/components/Header";
 import { Button } from "#/components/ui/button";
@@ -14,6 +9,10 @@ import { getSession } from "#/lib/auth.functions";
 import { formatFieldErrors } from "#/lib/field-errors";
 import { safeInternalPath } from "#/lib/nav-redirect";
 import { signinFormSchema, signupFormSchema } from "#/lib/schemas/auth-forms";
+import { useForm } from "@tanstack/react-form";
+import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 
 type AuthMode = "sign-in" | "sign-up";
 

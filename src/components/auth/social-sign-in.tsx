@@ -1,8 +1,7 @@
-import { useState } from "react";
-
 import { SocialSignInButton } from "#/components/auth/social-sign-in-button";
 import { authClient } from "#/lib/auth-client";
 import { cn } from "#/lib/utils";
+import { useState } from "react";
 
 const googleIcons = {
   light: "/icons/google/light.svg",

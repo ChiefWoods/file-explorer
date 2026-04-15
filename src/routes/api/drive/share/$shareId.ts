@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-
 import { errorResponse, HttpError } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
 import { prisma } from "#/lib/db";
+import { createFileRoute } from "@tanstack/react-router";
 
 type HandlerArgs = { request: Request; params?: { shareId?: string } };
 

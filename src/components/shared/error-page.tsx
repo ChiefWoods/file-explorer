@@ -1,5 +1,4 @@
-import { AlertTriangle } from "lucide-react";
-
+import { buttonVariants } from "#/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -8,8 +7,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "#/components/ui/empty";
-import { buttonVariants } from "#/components/ui/button";
 import { cn } from "#/lib/utils";
+import { AlertTriangle } from "lucide-react";
 
 type ErrorPageProps = {
   code?: number;
@@ -27,13 +26,13 @@ export function ErrorPage({
   return (
     <main
       className={cn(
-        "page-wrap flex min-h-screen items-center justify-center px-4 pb-16 pt-10",
+        "page-wrap flex min-h-screen items-center justify-center px-4 pt-10 pb-16",
         compact && "min-h-0 px-0 py-0",
       )}
     >
       <Empty
         className={cn(
-          "w-full max-w-2xl border border-destructive/30 border-solid bg-destructive/5 p-8",
+          "w-full max-w-2xl border border-solid border-destructive/30 bg-destructive/5 p-8",
           compact && "max-w-none",
         )}
       >

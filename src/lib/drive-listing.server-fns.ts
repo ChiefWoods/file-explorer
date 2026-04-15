@@ -1,9 +1,9 @@
+import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
+
+import { requestDriveListing } from "#/lib/drive-listing.fetch";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
-
-import { requestDriveListing } from "#/lib/drive-listing.fetch";
-import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
 export const loadDriveListing = createServerFn({ method: "GET" })
   .inputValidator(z.object({ folderId: z.string().trim().min(1) }))

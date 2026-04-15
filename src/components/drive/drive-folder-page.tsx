@@ -1,29 +1,9 @@
-import {
-  Copy,
-  CopyCheck,
-  FileImage,
-  FileSpreadsheet,
-  FileText,
-  FolderOpen,
-  FolderPlus,
-  Grid3X3,
-  List,
-  Trash2,
-  Upload,
-  X,
-} from "lucide-react";
-import { useForm } from "@tanstack/react-form";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useRouter } from "@tanstack/react-router";
-import { Fragment, useEffect, useState, type FormEvent } from "react";
-import { toast } from "sonner";
+import type { DriveItemRecord } from "#/components/drive/drive-items.types";
+import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
 import { DriveItemsView } from "#/components/drive/drive-items-view";
-import type { DriveItemRecord } from "#/components/drive/drive-items.types";
-import { FileDropzone } from "#/components/drive/file-dropzone";
 import { DriveShell } from "#/components/drive/drive-shell";
-import { Button } from "#/components/ui/button";
-import { ButtonGroup } from "#/components/ui/button-group";
+import { FileDropzone } from "#/components/drive/file-dropzone";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -31,6 +11,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "#/components/ui/breadcrumb";
+import { Button } from "#/components/ui/button";
+import { ButtonGroup } from "#/components/ui/button-group";
 import {
   Dialog,
   DialogContent,
@@ -48,10 +30,28 @@ import { fetchDriveListing } from "#/lib/drive-listing";
 import { persistDriveViewMode, readDriveViewModeFromStorage } from "#/lib/drive-view-mode";
 import { formatFieldErrors } from "#/lib/field-errors";
 import { formatBytes } from "#/lib/format-bytes";
-import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 import { queryKeys } from "#/lib/query-keys";
 import { uploadFilesFormSchema } from "#/lib/schemas/drive-forms";
 import { SHARE_DURATION_PRESETS, type ShareDurationPreset } from "#/lib/share-duration";
+import { useForm } from "@tanstack/react-form";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useRouter } from "@tanstack/react-router";
+import {
+  Copy,
+  CopyCheck,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  FolderOpen,
+  FolderPlus,
+  Grid3X3,
+  List,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
+import { Fragment, useEffect, useState, type FormEvent } from "react";
+import { toast } from "sonner";
 
 type DriveItem = DriveItemRecord & { mimeType?: string };
 

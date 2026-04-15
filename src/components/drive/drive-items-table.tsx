@@ -1,4 +1,4 @@
-import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
+import type { DriveItemRecord, DriveItemsViewProps } from "#/components/drive/drive-items.types";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { cn } from "#/lib/utils";
 import {
   Table,
   TableBody,
@@ -16,7 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
-import type { DriveItemRecord, DriveItemsViewProps } from "#/components/drive/drive-items.types";
+import { cn } from "#/lib/utils";
+import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
 
 export type DriveTableItem = DriveItemRecord;
 
@@ -68,7 +68,7 @@ export function DriveItemsTable({
                 }}
                 data-state={selected ? "selected" : undefined}
                 className={cn(
-                  "cursor-pointer outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 active:bg-muted/70",
+                  "cursor-pointer transition-colors outline-none hover:bg-muted/60 focus-visible:bg-muted/60 active:bg-muted/70",
                   selected && "bg-muted data-[state=selected]:bg-muted",
                 )}
               >

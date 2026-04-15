@@ -1,9 +1,8 @@
+import { prisma } from "#/lib/db";
+import { ensureUserRootFolder } from "#/lib/drive-repository";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-
-import { prisma } from "#/lib/db";
-import { ensureUserRootFolder } from "#/lib/drive-repository";
 
 const trustedOrigins = process.env.BETTER_AUTH_TRUSTED_ORIGINS
   ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",")

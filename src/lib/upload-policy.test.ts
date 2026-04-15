@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { MAX_UPLOAD_BYTES, normalizeItemName, validateUploadFile } from "#/lib/upload-policy";
+import { describe, expect, it } from "vitest";
 
 describe("upload policy", () => {
   it("accepts files that match allowlisted MIME and extension", () => {

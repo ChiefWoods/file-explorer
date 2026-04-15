@@ -1,4 +1,4 @@
-import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
+import type { DriveItemRecord, DriveItemsViewProps } from "#/components/drive/drive-items.types";
 
 import { Button } from "#/components/ui/button";
 import {
@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import type { DriveItemRecord, DriveItemsViewProps } from "#/components/drive/drive-items.types";
+import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
 
 type DriveItemsGridProps = DriveItemsViewProps;
 

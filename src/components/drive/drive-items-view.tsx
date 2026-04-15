@@ -1,10 +1,10 @@
-import { FolderOpen } from "lucide-react";
+import type { DriveItemsViewProps } from "#/components/drive/drive-items.types";
 
 import { DriveEmptyState } from "#/components/drive/drive-empty-state";
 import { DriveItemsGrid } from "#/components/drive/drive-items-grid";
 import { DriveItemsTable } from "#/components/drive/drive-items-table";
 import { ErrorPage } from "#/components/shared/error-page";
-import type { DriveItemsViewProps } from "#/components/drive/drive-items.types";
+import { FolderOpen } from "lucide-react";
 
 type DriveItemsStateViewProps = DriveItemsViewProps & {
   viewMode: "list" | "grid";

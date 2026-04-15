@@ -1,6 +1,3 @@
-import { ChevronsUpDown, Cloud, FolderOpen, LogOut, Share2, User } from "lucide-react";
-import { useLocation, useNavigate } from "@tanstack/react-router";
-
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import {
   DropdownMenu,
@@ -24,6 +21,9 @@ import {
 } from "#/components/ui/sidebar";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { formatBytes } from "#/lib/format-bytes";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import { ChevronsUpDown, Cloud, FolderOpen, LogOut, Share2, User } from "lucide-react";
+
 import ThemeToggle from "../ThemeToggle";
 
 type DriveSection = "my-drive" | "shared";

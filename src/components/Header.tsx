@@ -1,6 +1,5 @@
-import { Cloud } from "lucide-react";
-
 import ThemeToggle from "#/components/ThemeToggle";
+import { Cloud } from "lucide-react";
 
 export default function Header() {
   return (

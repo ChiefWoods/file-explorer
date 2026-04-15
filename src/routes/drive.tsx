@@ -1,10 +1,10 @@
-import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router";
+import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
 import { DriveFolderPage } from "#/components/drive/drive-folder-page";
 import { getSession } from "#/lib/auth.functions";
 import { loadDriveListing } from "#/lib/drive-listing.server-fns";
-import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 import { safeInternalPath } from "#/lib/nav-redirect";
+import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/drive")({
   head: () => ({

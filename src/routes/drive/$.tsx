@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
 import { DriveFolderPage } from "#/components/drive/drive-folder-page";
 import { loadDriveListing } from "#/lib/drive-listing.server-fns";
-import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/drive/$")({
   head: () => ({

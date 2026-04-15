@@ -1,5 +1,5 @@
-import { auth } from "#/lib/auth";
 import { HttpError } from "#/lib/api/http";
+import { auth } from "#/lib/auth";
 
 type SessionPayload = Awaited<ReturnType<typeof auth.api.getSession>>;
 
