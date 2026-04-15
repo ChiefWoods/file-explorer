@@ -16,6 +16,7 @@ import { Route as DriveSplatRouteImport } from './routes/drive/$'
 import { Route as ApiShareTokenRouteImport } from './routes/api/share/$token'
 import { Route as ApiDriveUploadsRouteImport } from './routes/api/drive/uploads'
 import { Route as ApiDriveShareRouteImport } from './routes/api/drive/share'
+import { Route as ApiDriveListingRouteImport } from './routes/api/drive/listing'
 import { Route as ApiDriveFoldersRouteImport } from './routes/api/drive/folders'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiDriveShareShareIdRouteImport } from './routes/api/drive/share/$shareId'
@@ -57,6 +58,11 @@ const ApiDriveShareRoute = ApiDriveShareRouteImport.update({
   path: '/api/drive/share',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDriveListingRoute = ApiDriveListingRouteImport.update({
+  id: '/api/drive/listing',
+  path: '/api/drive/listing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDriveFoldersRoute = ApiDriveFoldersRouteImport.update({
   id: '/api/drive/folders',
   path: '/api/drive/folders',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/drive/$': typeof DriveSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/drive/folders': typeof ApiDriveFoldersRouteWithChildren
+  '/api/drive/listing': typeof ApiDriveListingRoute
   '/api/drive/share': typeof ApiDriveShareRouteWithChildren
   '/api/drive/uploads': typeof ApiDriveUploadsRoute
   '/api/share/$token': typeof ApiShareTokenRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/drive/$': typeof DriveSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/drive/folders': typeof ApiDriveFoldersRouteWithChildren
+  '/api/drive/listing': typeof ApiDriveListingRoute
   '/api/drive/share': typeof ApiDriveShareRouteWithChildren
   '/api/drive/uploads': typeof ApiDriveUploadsRoute
   '/api/share/$token': typeof ApiShareTokenRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/drive/$': typeof DriveSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/drive/folders': typeof ApiDriveFoldersRouteWithChildren
+  '/api/drive/listing': typeof ApiDriveListingRoute
   '/api/drive/share': typeof ApiDriveShareRouteWithChildren
   '/api/drive/uploads': typeof ApiDriveUploadsRoute
   '/api/share/$token': typeof ApiShareTokenRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/drive/$'
     | '/api/auth/$'
     | '/api/drive/folders'
+    | '/api/drive/listing'
     | '/api/drive/share'
     | '/api/drive/uploads'
     | '/api/share/$token'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/drive/$'
     | '/api/auth/$'
     | '/api/drive/folders'
+    | '/api/drive/listing'
     | '/api/drive/share'
     | '/api/drive/uploads'
     | '/api/share/$token'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/drive/$'
     | '/api/auth/$'
     | '/api/drive/folders'
+    | '/api/drive/listing'
     | '/api/drive/share'
     | '/api/drive/uploads'
     | '/api/share/$token'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiDriveFoldersRoute: typeof ApiDriveFoldersRouteWithChildren
+  ApiDriveListingRoute: typeof ApiDriveListingRoute
   ApiDriveShareRoute: typeof ApiDriveShareRouteWithChildren
   ApiDriveUploadsRoute: typeof ApiDriveUploadsRoute
   ApiShareTokenRoute: typeof ApiShareTokenRoute
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       path: '/api/drive/share'
       fullPath: '/api/drive/share'
       preLoaderRoute: typeof ApiDriveShareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/drive/listing': {
+      id: '/api/drive/listing'
+      path: '/api/drive/listing'
+      fullPath: '/api/drive/listing'
+      preLoaderRoute: typeof ApiDriveListingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/drive/folders': {
@@ -312,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiDriveFoldersRoute: ApiDriveFoldersRouteWithChildren,
+  ApiDriveListingRoute: ApiDriveListingRoute,
   ApiDriveShareRoute: ApiDriveShareRouteWithChildren,
   ApiDriveUploadsRoute: ApiDriveUploadsRoute,
   ApiShareTokenRoute: ApiShareTokenRoute,

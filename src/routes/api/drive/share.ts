@@ -37,30 +37,36 @@ async function handleListShares(request: Request): Promise<Response> {
     }
 
     const includeExpired = search.includeExpired === "true";
-    const links = await prisma.shareLink.findMany({
-      where: {
-        createdByUserId: session.user.id,
-        ...(search.folderId ? { folderId: search.folderId } : {}),
-        ...(!includeExpired
-          ? {
-              OR: [{ expiresAt: { gt: new Date() } }, { expiresAt: null }],
-            }
-          : {}),
-      },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        folderId: true,
-        expiresAt: true,
-        createdAt: true,
-        folder: {
-          select: {
-            id: true,
-            name: true,
+    const [links, storage] = await Promise.all([
+      prisma.shareLink.findMany({
+        where: {
+          createdByUserId: session.user.id,
+          ...(search.folderId ? { folderId: search.folderId } : {}),
+          ...(!includeExpired
+            ? {
+                OR: [{ expiresAt: { gt: new Date() } }, { expiresAt: null }],
+              }
+            : {}),
+        },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          folderId: true,
+          expiresAt: true,
+          createdAt: true,
+          folder: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.file.aggregate({
+        where: { userId: session.user.id },
+        _sum: { bytes: true },
+      }),
+    ]);
 
     const urlsByFolderId = new Map<string, string>();
     await Promise.all(
@@ -73,8 +79,13 @@ async function handleListShares(request: Request): Promise<Response> {
     );
 
     return Response.json({
+      storageUsed: storage._sum.bytes ?? 0,
       links: links.map((link) => ({
-        ...link,
+        id: link.id,
+        folderId: link.folderId,
+        folderName: link.folder.name,
+        createdAt: link.createdAt,
+        expiresAt: link.expiresAt,
         isExpired: isShareExpired(link.expiresAt),
         url: urlsByFolderId.get(link.folderId) ?? buildPublicShareUrl(request, [link.folderId]),
       })),
