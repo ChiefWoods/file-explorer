@@ -112,15 +112,17 @@ export function DriveItemsTable({
                           Rename
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onDownloadItem(item);
-                        }}
-                      >
-                        <Download />
-                        Download
-                      </DropdownMenuItem>
+                      {item.type === "file" && (
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDownloadItem(item);
+                          }}
+                        >
+                          <Download />
+                          Download
+                        </DropdownMenuItem>
+                      )}
                       {isAuthenticated && item.type === "folder" && (
                         <DropdownMenuItem
                           onClick={(event) => {
@@ -132,7 +134,7 @@ export function DriveItemsTable({
                           Share
                         </DropdownMenuItem>
                       )}
-                      {isAuthenticated && item.type === "file" && (
+                      {isAuthenticated && (
                         <DropdownMenuItem
                           variant="destructive"
                           onClick={(event) => {
