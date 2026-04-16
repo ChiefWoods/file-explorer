@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { Progress } from "#/components/ui/progress";
+import { Progress, ProgressIndicator } from "#/components/ui/progress";
 import {
   Sidebar,
   SidebarContent,
@@ -86,6 +86,8 @@ export function DriveSidebar({
   const [isMyDriveOpen, setIsMyDriveOpen] = useState(true);
   const userName = user.name?.trim() || "User";
   const userEmail = user.email?.trim() || "No email";
+  const storageProgressClassName =
+    storagePct >= 95 ? "bg-red-500" : storagePct >= 75 ? "bg-amber-500" : "bg-primary";
 
   useEffect(() => {
     if (activeSection === "my-drive") {
@@ -197,7 +199,9 @@ export function DriveSidebar({
             {formatBytes(storageUsed, { empty: "—" })} of{" "}
             {formatBytes(USER_STORAGE_LIMIT_BYTES, { empty: "—" })} used
           </p>
-          <Progress className="mt-2" value={storagePct} />
+          <Progress className="mt-2" value={storagePct}>
+            <ProgressIndicator className={storageProgressClassName} />
+          </Progress>
         </div>
       </SidebarContent>
 
