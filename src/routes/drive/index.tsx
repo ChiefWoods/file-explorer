@@ -39,7 +39,7 @@ function DrivePage() {
   return (
     <DriveFolderPage
       user={user}
-      initialData={loaderData ?? undefined}
+      initialData={loaderData}
       currentFolderId={loaderData?.folderId ?? "root"}
       pathSegments={[]}
     />

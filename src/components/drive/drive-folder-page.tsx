@@ -98,7 +98,7 @@ type DriveFolderPageProps = {
     name: string;
     email: string;
   } | null;
-  initialData?: DriveFolderListingResponse;
+  initialData: DriveFolderListingResponse | null;
   currentFolderId: string;
   pathSegments: string[];
 };

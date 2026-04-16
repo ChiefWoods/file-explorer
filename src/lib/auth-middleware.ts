@@ -13,9 +13,8 @@ type AuthContext = {
 export const authRequestMiddleware = createMiddleware({
   type: "request",
 }).server(async ({ next, pathname, request }) => {
-  const headers = new Headers(request.headers);
   const url = new URL(request.url);
-  const sessionResult = await auth.api.getSession({ headers });
+  const sessionResult = await auth.api.getSession({ headers: request.headers });
   const authContext: AuthContext = {
     session: sessionResult?.session ?? null,
     user: sessionResult?.user ?? null,

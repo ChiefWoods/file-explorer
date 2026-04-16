@@ -42,7 +42,7 @@ function DriveAbsoluteFolderRoutePage() {
   return (
     <DriveFolderPage
       user={user}
-      initialData={initialData ?? undefined}
+      initialData={initialData}
       currentFolderId={currentFolderId}
       pathSegments={pathSegments}
     />
