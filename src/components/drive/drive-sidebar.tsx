@@ -1,6 +1,7 @@
 import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
 
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,8 +27,18 @@ import {
 } from "#/components/ui/sidebar";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { formatBytes } from "#/lib/format-bytes";
+import { cn } from "#/lib/utils";
 import { useLocation, useNavigate } from "@tanstack/react-router";
-import { ChevronsUpDown, Cloud, FolderOpen, LogOut, Share2, User } from "lucide-react";
+import {
+  ChevronsUpDown,
+  ChevronRight,
+  Cloud,
+  FolderOpen,
+  LogOut,
+  Share2,
+  User,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 import ThemeToggle from "../ThemeToggle";
 
@@ -72,8 +83,15 @@ export function DriveSidebar({
   const activeSection: DriveSection = location.pathname.startsWith("/shared")
     ? "shared"
     : "my-drive";
+  const [isMyDriveOpen, setIsMyDriveOpen] = useState(true);
   const userName = user.name?.trim() || "User";
   const userEmail = user.email?.trim() || "No email";
+
+  useEffect(() => {
+    if (activeSection === "my-drive") {
+      setIsMyDriveOpen(true);
+    }
+  }, [activeSection]);
 
   return (
     <Sidebar className="w-[264px] border-border bg-(--sidebar) p-2">
@@ -89,6 +107,70 @@ export function DriveSidebar({
               const isActive =
                 item.key === "my-drive" ? isDriveRootRoute : activeSection === item.key;
               const Icon = item.icon;
+
+              if (item.key === "my-drive") {
+                return (
+                  <SidebarMenuItem key={item.key}>
+                    <Collapsible
+                      open={isMyDriveOpen}
+                      onOpenChange={setIsMyDriveOpen}
+                      className="group/collapsible"
+                    >
+                      <div className="relative">
+                        <SidebarMenuButton
+                          type="button"
+                          isActive={isActive}
+                          className="pr-8"
+                          onClick={() => void navigate({ to: "/drive" })}
+                        >
+                          <Icon
+                            className={`size-[18px] ${isActive ? "text-(--primary)" : "text-(--sea-ink-soft)"}`}
+                            aria-hidden
+                          />
+                          {item.label}
+                        </SidebarMenuButton>
+                        {nestedFolders.length > 0 && (
+                          <CollapsibleTrigger
+                            render={
+                              <button
+                                type="button"
+                                aria-label="Toggle My Drive folders"
+                                className="absolute top-0 right-0 inline-flex size-8 items-center justify-center rounded-md text-(--sea-ink-soft) hover:bg-sidebar-accent"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                }}
+                              />
+                            }
+                          >
+                            <ChevronRight
+                              className={cn(
+                                "size-4 transition-transform",
+                                isMyDriveOpen && "rotate-90",
+                              )}
+                              aria-hidden
+                            />
+                          </CollapsibleTrigger>
+                        )}
+                      </div>
+                      <CollapsibleContent>
+                        {nestedFolders.length > 0 && (
+                          <DriveSidebarFolderTree
+                            folders={nestedFolders}
+                            currentFolderId={currentFolderId}
+                            onSelect={(folderPath) =>
+                              void navigate({
+                                to: "/drive/$",
+                                params: { _splat: folderPath },
+                              })
+                            }
+                          />
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </SidebarMenuItem>
+                );
+              }
+
               return (
                 <SidebarMenuItem key={item.key}>
                   <SidebarMenuButton
@@ -104,18 +186,6 @@ export function DriveSidebar({
                     />
                     {item.label}
                   </SidebarMenuButton>
-                  {item.key === "my-drive" && nestedFolders.length > 0 && (
-                    <DriveSidebarFolderTree
-                      folders={nestedFolders}
-                      currentFolderId={currentFolderId}
-                      onSelect={(folderPath) =>
-                        void navigate({
-                          to: "/drive/$",
-                          params: { _splat: folderPath },
-                        })
-                      }
-                    />
-                  )}
                 </SidebarMenuItem>
               );
             })}
@@ -194,24 +264,107 @@ function DriveSidebarFolderTree({
   return (
     <SidebarMenuSub>
       {folders.map((folder) => (
-        <SidebarMenuSubItem key={folder.id}>
-          <SidebarMenuSubButton
-            render={<button type="button" />}
-            isActive={folder.id === currentFolderId}
-            className="w-full justify-start"
-            onClick={() => onSelect(folder.path)}
-          >
-            {folder.name}
-          </SidebarMenuSubButton>
-          {folder.children.length > 0 && (
-            <DriveSidebarFolderTree
-              folders={folder.children}
-              currentFolderId={currentFolderId}
-              onSelect={onSelect}
-            />
-          )}
-        </SidebarMenuSubItem>
+        <DriveSidebarFolderTreeItem
+          key={folder.id}
+          folder={folder}
+          currentFolderId={currentFolderId}
+          onSelect={onSelect}
+        />
       ))}
     </SidebarMenuSub>
   );
+}
+
+function DriveSidebarFolderTreeItem({
+  folder,
+  currentFolderId,
+  onSelect,
+}: {
+  folder: DriveSidebarFolderNode;
+  currentFolderId?: string;
+  onSelect: (folderPath: string) => void;
+}) {
+  const isCurrent = folder.id === currentFolderId;
+  const hasChildren = folder.children.length > 0;
+  const isInActiveBranch =
+    !!currentFolderId && folder.children.some((child) => containsFolderId(child, currentFolderId));
+  const [isOpen, setIsOpen] = useState(isInActiveBranch || isCurrent);
+
+  useEffect(() => {
+    if (isInActiveBranch || isCurrent) {
+      setIsOpen(true);
+    }
+  }, [isCurrent, isInActiveBranch]);
+
+  if (!hasChildren) {
+    return (
+      <SidebarMenuSubItem>
+        <SidebarMenuSubButton
+          render={<button type="button" />}
+          isActive={isCurrent}
+          className="w-full justify-start"
+          onClick={() => onSelect(folder.path)}
+        >
+          <FolderOpen
+            className={cn("size-4", isCurrent ? "text-(--primary)" : "text-(--sea-ink-soft)")}
+            aria-hidden
+          />
+          {folder.name}
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
+    );
+  }
+
+  return (
+    <SidebarMenuSubItem>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="group/collapsible">
+        <div className="relative">
+          <SidebarMenuSubButton
+            render={<button type="button" />}
+            isActive={isCurrent}
+            className="w-full justify-start pr-8"
+            onClick={() => onSelect(folder.path)}
+          >
+            <FolderOpen
+              className={cn("size-4", isCurrent ? "text-(--primary)" : "text-(--sea-ink-soft)")}
+              aria-hidden
+            />
+            {folder.name}
+          </SidebarMenuSubButton>
+          <CollapsibleTrigger
+            render={
+              <button
+                type="button"
+                aria-label={`Toggle ${folder.name}`}
+                className="absolute top-0 right-0 inline-flex size-7 items-center justify-center rounded-md text-(--sea-ink-soft) hover:bg-sidebar-accent"
+                onClick={(event) => {
+                  event.stopPropagation();
+                }}
+              />
+            }
+          >
+            <ChevronRight
+              className={cn("size-4 transition-transform", isOpen && "rotate-90")}
+              aria-hidden
+            />
+          </CollapsibleTrigger>
+        </div>
+        <CollapsibleContent>
+          <DriveSidebarFolderTree
+            folders={folder.children}
+            currentFolderId={currentFolderId}
+            onSelect={onSelect}
+          />
+        </CollapsibleContent>
+      </Collapsible>
+    </SidebarMenuSubItem>
+  );
+}
+
+function containsFolderId(folder: DriveSidebarFolderNode, folderId: string): boolean {
+  if (folder.id === folderId) {
+    return true;
+  }
+
+  return folder.children.some((child) => containsFolderId(child, folderId));
 }
