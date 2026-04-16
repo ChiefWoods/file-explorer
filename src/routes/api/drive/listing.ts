@@ -7,6 +7,7 @@ import {
   ensureUserRootFolder,
   getDriveSidebarFolders,
   getFolderBreadcrumbs,
+  getFolderIdPath,
 } from "#/lib/drive-repository";
 import { readDriveViewModeFromCookie } from "#/lib/drive-view-mode";
 import { createFileRoute } from "@tanstack/react-router";
@@ -43,16 +44,20 @@ async function handleGetDriveListing(request: Request): Promise<Response> {
 
     const isOwner = session?.user?.id === folder.userId;
     if (!isOwner) {
+      const folderPathIds = await getFolderIdPath(folder.userId, folder.id);
       const hasActiveShare = await prisma.shareLink.findFirst({
         where: {
-          folderId: folder.id,
+          folderId: { in: folderPathIds },
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         select: { id: true },
       });
 
       if (!hasActiveShare) {
-        throw new HttpError(403, "SHARE_UNAVAILABLE", "This shared folder is unavailable.");
+        if (!session?.user?.id) {
+          throw new HttpError(401, "AUTH_REQUIRED", "Sign in to access this folder.");
+        }
+        throw new HttpError(403, "FORBIDDEN", "You do not have access to this folder.");
       }
     }
 

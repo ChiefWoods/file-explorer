@@ -26,8 +26,9 @@ export const Route = createRootRoute({
     }
 
     const sessionResult = await getSession();
-    const isProtectedRoute =
-      location.pathname.startsWith("/drive") || location.pathname.startsWith("/shared");
+    const isDriveRoot = location.pathname === "/drive" || location.pathname === "/drive/";
+    const isSharedRoute = location.pathname.startsWith("/shared");
+    const isProtectedRoute = isDriveRoot || isSharedRoute;
 
     if (location.pathname === "/") {
       throw redirect({ to: sessionResult?.session ? "/drive" : "/sign-in" });

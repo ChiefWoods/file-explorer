@@ -19,21 +19,21 @@ export const Route = createFileRoute("/drive/$")({
       return null;
     }
 
-    return loadDriveListing({ data: { folderId } });
+    try {
+      return await loadDriveListing({ data: { folderId } });
+    } catch {
+      return null;
+    }
   },
   component: DriveAbsoluteFolderRoutePage,
 });
 
 function DriveAbsoluteFolderRoutePage() {
-  const { user } = RootRoute.useRouteContext();
+  const { user, session } = RootRoute.useRouteContext();
   const params = Route.useParams();
   const initialData = Route.useLoaderData() as DriveFolderListingResponse | null;
   const currentFolderId = getFolderIdFromSplat(params) ?? initialData?.folderId ?? "";
   const pathSegments = getPathSegmentsFromParams(params);
-
-  if (!user) {
-    return null;
-  }
 
   if (!currentFolderId) {
     return null;
@@ -41,7 +41,8 @@ function DriveAbsoluteFolderRoutePage() {
 
   return (
     <DriveFolderPage
-      user={user}
+      isAuthenticated={Boolean(session)}
+      user={user ?? {}}
       initialData={initialData ?? undefined}
       currentFolderId={currentFolderId}
       pathSegments={pathSegments}

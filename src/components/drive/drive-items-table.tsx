@@ -23,6 +23,7 @@ export type DriveTableItem = DriveItemRecord;
 type DriveItemsTableProps = DriveItemsViewProps;
 
 export function DriveItemsTable({
+  isAuthenticated,
   items,
   selectedIds,
   onToggleSelect,
@@ -35,7 +36,7 @@ export function DriveItemsTable({
   renderItemIcon,
 }: DriveItemsTableProps) {
   return (
-    <div className="border-border bg-card overflow-hidden rounded-xl border">
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -100,15 +101,17 @@ export function DriveItemsTable({
                       <MoreHorizontal />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="min-w-36">
-                      <DropdownMenuItem
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onRenameItem(item);
-                        }}
-                      >
-                        <PencilLine />
-                        Rename
-                      </DropdownMenuItem>
+                      {isAuthenticated && (
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onRenameItem(item);
+                          }}
+                        >
+                          <PencilLine />
+                          Rename
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={(event) => {
                           event.stopPropagation();
@@ -118,7 +121,7 @@ export function DriveItemsTable({
                         <Download />
                         Download
                       </DropdownMenuItem>
-                      {item.type === "folder" && (
+                      {isAuthenticated && item.type === "folder" && (
                         <DropdownMenuItem
                           onClick={(event) => {
                             event.stopPropagation();
@@ -129,7 +132,7 @@ export function DriveItemsTable({
                           Share
                         </DropdownMenuItem>
                       )}
-                      {item.type === "file" && (
+                      {isAuthenticated && item.type === "file" && (
                         <DropdownMenuItem
                           variant="destructive"
                           onClick={(event) => {

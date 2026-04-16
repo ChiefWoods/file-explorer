@@ -28,13 +28,16 @@ import {
 } from "#/components/ui/sidebar";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { formatBytes } from "#/lib/format-bytes";
+import { safeInternalPath } from "#/lib/nav-redirect";
 import { cn } from "#/lib/utils";
+import { Route as RootRoute } from "#/routes/__root";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
   ChevronsUpDown,
   ChevronRight,
   Cloud,
   FolderOpen,
+  LogIn,
   LogOut,
   Share2,
   User,
@@ -79,6 +82,9 @@ export function DriveSidebar({
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
+  const { session } = RootRoute.useRouteContext();
+  const isAuthenticated = Boolean(session);
+  const isPublicSharedView = !isAuthenticated && location.pathname.startsWith("/drive/");
   const isDriveRootRoute = location.pathname === "/drive" || location.pathname === "/drive/";
   const activeSection: DriveSection = location.pathname.startsWith("/shared")
     ? "shared"
@@ -90,162 +96,193 @@ export function DriveSidebar({
     storagePct >= 95 ? "bg-red-500" : storagePct >= 75 ? "bg-amber-500" : "bg-primary";
 
   return (
-    <Sidebar className="w-[264px] border-border bg-(--sidebar) p-2">
+    <Sidebar className="w-[264px] border-border bg-sidebar p-2">
       <SidebarHeader className="flex flex-row items-center gap-2.5">
-        <Cloud className="size-6 text-(--primary)" aria-hidden />
+        <Cloud className="size-6 text-primary" aria-hidden />
         <p className="m-0 text-[17px] font-bold text-(--sea-ink)">File Uploader</p>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup className="p-0">
-          <SidebarMenu>
-            {DRIVE_SECTION_ITEMS.map((item) => {
-              const isActive =
-                item.key === "my-drive" ? isDriveRootRoute : activeSection === item.key;
-              const Icon = item.icon;
+      {!isPublicSharedView && (
+        <SidebarContent>
+          <SidebarGroup className="p-0">
+            <SidebarMenu>
+              {DRIVE_SECTION_ITEMS.map((item) => {
+                const isActive =
+                  item.key === "my-drive" ? isDriveRootRoute : activeSection === item.key;
+                const Icon = item.icon;
 
-              if (item.key === "my-drive") {
-                return (
-                  <SidebarMenuItem key={item.key}>
-                    <Collapsible
-                      open={isMyDriveOpen}
-                      onOpenChange={setIsMyDriveOpen}
-                      className="group/collapsible"
-                    >
-                      <div className="relative">
-                        <SidebarMenuButton
-                          type="button"
-                          isActive={isActive}
-                          className="pr-8"
-                          onClick={() => void navigate({ to: "/drive" })}
-                        >
-                          <Icon
-                            className={`size-[18px] ${isActive ? "text-(--primary)" : "text-(--sea-ink-soft)"}`}
-                            aria-hidden
-                          />
-                          {item.label}
-                        </SidebarMenuButton>
-                        {nestedFolders.length > 0 && (
-                          <CollapsibleTrigger
-                            render={
-                              <button
-                                type="button"
-                                aria-label="Toggle My Drive folders"
-                                className="absolute top-0 right-0 inline-flex size-8 items-center justify-center rounded-md text-(--sea-ink-soft) hover:bg-sidebar-accent"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                }}
-                              />
-                            }
+                if (item.key === "my-drive") {
+                  return (
+                    <SidebarMenuItem key={item.key}>
+                      <Collapsible
+                        open={isMyDriveOpen}
+                        onOpenChange={setIsMyDriveOpen}
+                        className="group/collapsible"
+                      >
+                        <div className="relative">
+                          <SidebarMenuButton
+                            type="button"
+                            isActive={isActive}
+                            className="pr-8"
+                            onClick={() => void navigate({ to: "/drive" })}
                           >
-                            <ChevronRight
-                              className={cn(
-                                "size-4 transition-transform",
-                                isMyDriveOpen && "rotate-90",
-                              )}
+                            <Icon
+                              className={`size-[18px] ${isActive ? "text-primary" : "text-(--sea-ink-soft)"}`}
                               aria-hidden
                             />
-                          </CollapsibleTrigger>
-                        )}
-                      </div>
-                      <CollapsibleContent>
-                        {nestedFolders.length > 0 && (
-                          <DriveSidebarFolderTree
-                            folders={nestedFolders}
-                            currentFolderId={currentFolderId}
-                            onSelect={(folderPath) =>
-                              void navigate({
-                                to: "/drive/$",
-                                params: { _splat: folderPath },
-                              })
-                            }
-                          />
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
+                            {item.label}
+                          </SidebarMenuButton>
+                          {nestedFolders.length > 0 && (
+                            <CollapsibleTrigger
+                              render={
+                                <button
+                                  type="button"
+                                  aria-label="Toggle My Drive folders"
+                                  className="absolute top-0 right-0 inline-flex size-8 items-center justify-center rounded-md text-(--sea-ink-soft) hover:bg-sidebar-accent"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                  }}
+                                />
+                              }
+                            >
+                              <ChevronRight
+                                className={cn(
+                                  "size-4 transition-transform",
+                                  isMyDriveOpen && "rotate-90",
+                                )}
+                                aria-hidden
+                              />
+                            </CollapsibleTrigger>
+                          )}
+                        </div>
+                        <CollapsibleContent>
+                          {nestedFolders.length > 0 && (
+                            <DriveSidebarFolderTree
+                              folders={nestedFolders}
+                              currentFolderId={currentFolderId}
+                              onSelect={(folderPath) =>
+                                void navigate({
+                                  to: "/drive/$",
+                                  params: { _splat: folderPath },
+                                })
+                              }
+                            />
+                          )}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </SidebarMenuItem>
+                  );
+                }
+
+                return (
+                  <SidebarMenuItem key={item.key}>
+                    <SidebarMenuButton
+                      type="button"
+                      isActive={isActive}
+                      onClick={() =>
+                        void navigate({ to: item.key === "my-drive" ? "/drive" : "/shared" })
+                      }
+                    >
+                      <Icon
+                        className={`size-[18px] ${isActive ? "text-primary" : "text-(--sea-ink-soft)"}`}
+                        aria-hidden
+                      />
+                      {item.label}
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
-              }
+              })}
+            </SidebarMenu>
+          </SidebarGroup>
+          <div className="rounded-xl border border-border bg-(--surface) p-3.5">
+            <p className="m-0 text-xs font-semibold text-(--sea-ink)">Storage</p>
+            <p className="mt-1 text-xs text-(--sea-ink-soft)">
+              {formatBytes(storageUsed, { empty: "—" })} of{" "}
+              {formatBytes(USER_STORAGE_LIMIT_BYTES, { empty: "—" })} used
+            </p>
+            <Progress className="mt-2" value={storagePct}>
+              <ProgressIndicator className={storageProgressClassName} />
+            </Progress>
+          </div>
+        </SidebarContent>
+      )}
 
-              return (
-                <SidebarMenuItem key={item.key}>
-                  <SidebarMenuButton
-                    type="button"
-                    isActive={isActive}
-                    onClick={() =>
-                      void navigate({ to: item.key === "my-drive" ? "/drive" : "/shared" })
-                    }
-                  >
-                    <Icon
-                      className={`size-[18px] ${isActive ? "text-(--primary)" : "text-(--sea-ink-soft)"}`}
-                      aria-hidden
-                    />
-                    {item.label}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </SidebarGroup>
-        <div className="rounded-xl border border-border bg-(--surface) p-3.5">
-          <p className="m-0 text-xs font-semibold text-(--sea-ink)">Storage</p>
-          <p className="mt-1 text-xs text-(--sea-ink-soft)">
-            {formatBytes(storageUsed, { empty: "—" })} of{" "}
-            {formatBytes(USER_STORAGE_LIMIT_BYTES, { empty: "—" })} used
-          </p>
-          <Progress className="mt-2" value={storagePct}>
-            <ProgressIndicator className={storageProgressClassName} />
-          </Progress>
-        </div>
-      </SidebarContent>
+      <div className="mt-auto flex flex-col gap-2.5 pt-2">
+        <ThemeToggle />
 
-      <ThemeToggle />
-
-      <SidebarFooter className="mt-4 flex flex-col gap-2.5 p-0">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />} className="h-12">
-                <Avatar className="size-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
-                    <User className="size-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <p className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{userName}</span>
-                  <span className="truncate text-xs">{userEmail}</span>
-                </p>
-                <ChevronsUpDown className="ml-auto size-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="min-w-56 rounded-lg"
-                side={isMobile ? "bottom" : "right"}
-                align="end"
-                sideOffset={4}
-              >
-                <DropdownMenuGroup className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
+        <SidebarFooter className="flex flex-col gap-2.5 p-0">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              {isPublicSharedView ? (
+                <SidebarMenuButton
+                  size="lg"
+                  className="h-12"
+                  type="button"
+                  onClick={() => {
+                    const href = `${location.pathname}${location.searchStr ?? ""}`;
+                    void navigate({
+                      to: "/sign-in",
+                      search: { redirect: safeInternalPath(href, "/drive") },
+                    });
+                  }}
+                >
                   <Avatar className="size-8 rounded-lg">
                     <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
-                      <User className="size-4" />
+                      <LogIn className="size-4" />
                     </AvatarFallback>
                   </Avatar>
                   <p className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{userName}</span>
-                    <span className="truncate text-xs">{userEmail}</span>
+                    <span className="truncate font-medium">Log In</span>
+                    <span className="truncate text-xs text-(--sea-ink-soft)">
+                      Sign in to manage files
+                    </span>
                   </p>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={onSignOut} disabled={isSigningOut}>
-                    <LogOut />
-                    {isSigningOut ? "Logging out…" : "Log out"}
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+                </SidebarMenuButton>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />} className="h-12">
+                    <Avatar className="size-8 rounded-lg">
+                      <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
+                        <User className="size-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-medium">{userName}</span>
+                      <span className="truncate text-xs">{userEmail}</span>
+                    </p>
+                    <ChevronsUpDown className="ml-auto size-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="min-w-56 rounded-lg"
+                    side={isMobile ? "bottom" : "right"}
+                    align="end"
+                    sideOffset={4}
+                  >
+                    <DropdownMenuGroup className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
+                      <Avatar className="size-8 rounded-lg">
+                        <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
+                          <User className="size-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-medium">{userName}</span>
+                        <span className="truncate text-xs">{userEmail}</span>
+                      </p>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={onSignOut} disabled={isSigningOut}>
+                        <LogOut />
+                        {isSigningOut ? "Logging out…" : "Log out"}
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </div>
     </Sidebar>
   );
 }
@@ -299,7 +336,7 @@ function DriveSidebarFolderTreeItem({
           onClick={() => onSelect(folder.path)}
         >
           <FolderOpen
-            className={cn("size-4", isCurrent ? "text-(--primary)" : "text-(--sea-ink-soft)")}
+            className={cn("size-4", isCurrent ? "text-primary" : "text-(--sea-ink-soft)")}
             aria-hidden
           />
           {folder.name}
@@ -323,7 +360,7 @@ function DriveSidebarFolderTreeItem({
             onClick={() => onSelect(folder.path)}
           >
             <FolderOpen
-              className={cn("size-4", isCurrent ? "text-(--primary)" : "text-(--sea-ink-soft)")}
+              className={cn("size-4", isCurrent ? "text-primary" : "text-(--sea-ink-soft)")}
               aria-hidden
             />
             {folder.name}

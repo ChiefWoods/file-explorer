@@ -10,6 +10,7 @@ type DriveItemsStateViewProps = DriveItemsViewProps & {
   viewMode: "list" | "grid";
   isPending: boolean;
   isError: boolean;
+  errorCode?: number;
   errorMessage?: string;
   pendingTitle: string;
   emptyTitle: string;
@@ -20,6 +21,7 @@ export function DriveItemsView({
   viewMode,
   isPending,
   isError,
+  errorCode,
   errorMessage,
   pendingTitle,
   emptyTitle,
@@ -31,10 +33,13 @@ export function DriveItemsView({
   }
 
   if (isError) {
+    const errorTitle =
+      errorCode === 401 ? "Unauthorized" : errorCode === 403 ? "Forbidden" : "Could not load drive";
     return (
       <ErrorPage
         compact
-        title="Could not load drive"
+        code={errorCode}
+        title={errorTitle}
         description={errorMessage ?? "Something went wrong while loading your files."}
       />
     );

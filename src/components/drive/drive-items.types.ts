@@ -7,6 +7,7 @@ export type DriveItemRecord = {
 };
 
 export type DriveItemsViewProps = {
+  isAuthenticated: boolean;
   items: DriveItemRecord[];
   selectedIds: Set<string>;
   onToggleSelect: (itemId: string) => void;

@@ -1,6 +1,7 @@
 import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
 type ApiErrorShape = { error?: { message?: string } };
+type HttpishError = Error & { status?: number; statusCode?: number };
 
 export async function requestDriveListing(
   input: RequestInfo | URL,
@@ -15,7 +16,10 @@ export async function requestDriveListing(
   if (!response.ok || !isDriveFolderListingResponse(json)) {
     const errorMessage =
       json && typeof json === "object" && "error" in json ? json.error?.message : undefined;
-    throw new Error(errorMessage ?? "Could not load folder.");
+    const error: HttpishError = new Error(errorMessage ?? "Could not load folder.");
+    error.status = response.status;
+    error.statusCode = response.status;
+    throw error;
   }
 
   return json;

@@ -1,12 +1,12 @@
 import { errorResponse, HttpError, parseJsonBody } from "#/lib/api/http";
-import { requireAuthSession } from "#/lib/api/session";
+import { getOptionalAuthSession, requireAuthSession } from "#/lib/api/session";
 import {
   buildCloudinaryDownloadUrl,
   destroyCloudinaryAsset,
   toCloudinaryResourceType,
 } from "#/lib/cloudinary";
 import { prisma } from "#/lib/db";
-import { requireOwnedFile, requireOwnedFolder } from "#/lib/drive-repository";
+import { getFolderIdPath, requireOwnedFile, requireOwnedFolder } from "#/lib/drive-repository";
 import { fileNameSchema } from "#/lib/upload-policy";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
@@ -39,9 +39,59 @@ export const Route = createFileRoute("/api/drive/files/$fileId")({
 
 async function handleGetFile(request: Request, fileIdRaw: string | undefined): Promise<Response> {
   try {
-    const session = await requireAuthSession(request);
     const fileId = parseFileId(fileIdRaw);
-    const file = await requireOwnedFile(session.user.id, fileId);
+    const session = await getOptionalAuthSession(request);
+    const file = await prisma.file.findUnique({
+      where: { id: fileId },
+      select: {
+        id: true,
+        userId: true,
+        folderId: true,
+        name: true,
+        mimeType: true,
+        bytes: true,
+        cloudinaryPublicId: true,
+        resourceType: true,
+        secureUrl: true,
+        createdAt: true,
+      },
+    });
+
+    if (!file) {
+      throw new HttpError(404, "FILE_NOT_FOUND", "File not found.");
+    }
+
+    const isOwner = session?.user?.id === file.userId;
+    if (!isOwner) {
+      const folderPathIds = await getFolderIdPath(file.userId, file.folderId);
+      const hasActiveShare = await prisma.shareLink.findFirst({
+        where: {
+          folderId: { in: folderPathIds },
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
+        select: { id: true },
+      });
+
+      if (!hasActiveShare) {
+        if (!session?.user?.id) {
+          throw new HttpError(401, "AUTH_REQUIRED", "Unauthorized.");
+        }
+        throw new HttpError(403, "FORBIDDEN", "Forbidden.");
+      }
+    }
+
+    // For shared/unauthenticated viewers, only expose what the UI needs for downloading.
+    if (!isOwner) {
+      return Response.json({
+        id: file.id,
+        folderId: file.folderId,
+        name: file.name,
+        mimeType: file.mimeType,
+        bytes: file.bytes,
+        createdAt: file.createdAt,
+        downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl, file.name),
+      });
+    }
 
     return Response.json({
       ...file,

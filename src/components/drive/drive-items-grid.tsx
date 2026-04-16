@@ -12,6 +12,7 @@ import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-rea
 type DriveItemsGridProps = DriveItemsViewProps;
 
 export function DriveItemsGrid({
+  isAuthenticated,
   items,
   selectedIds,
   onToggleSelect,
@@ -70,15 +71,17 @@ export function DriveItemsGrid({
                   <MoreHorizontal />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-36">
-                  <DropdownMenuItem
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onRenameItem(item);
-                    }}
-                  >
-                    <PencilLine />
-                    Rename
-                  </DropdownMenuItem>
+                  {isAuthenticated && (
+                    <DropdownMenuItem
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRenameItem(item);
+                      }}
+                    >
+                      <PencilLine />
+                      Rename
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onClick={(event) => {
                       event.stopPropagation();
@@ -88,7 +91,7 @@ export function DriveItemsGrid({
                     <Download />
                     Download
                   </DropdownMenuItem>
-                  {item.type === "folder" && (
+                  {isAuthenticated && item.type === "folder" && (
                     <DropdownMenuItem
                       onClick={(event) => {
                         event.stopPropagation();
@@ -99,7 +102,7 @@ export function DriveItemsGrid({
                       Share
                     </DropdownMenuItem>
                   )}
-                  {item.type === "file" && (
+                  {isAuthenticated && item.type === "file" && (
                     <DropdownMenuItem
                       variant="destructive"
                       onClick={(event) => {

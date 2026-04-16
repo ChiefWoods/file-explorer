@@ -18,7 +18,11 @@ export const Route = createFileRoute("/drive/")({
       return null;
     }
 
-    return loadDriveListing({ data: { folderId: "root" } });
+    try {
+      return await loadDriveListing({ data: { folderId: "root" } });
+    } catch {
+      return null;
+    }
   },
   component: DrivePage,
 });
@@ -26,7 +30,7 @@ export const Route = createFileRoute("/drive/")({
 function DrivePage() {
   const location = useLocation();
   const loaderData = Route.useLoaderData() as DriveFolderListingResponse | null;
-  const { user } = RootRoute.useRouteContext();
+  const { user, session } = RootRoute.useRouteContext();
 
   if (!user) {
     return null;
@@ -38,6 +42,7 @@ function DrivePage() {
 
   return (
     <DriveFolderPage
+      isAuthenticated={Boolean(session)}
       user={user}
       initialData={loaderData ?? undefined}
       currentFolderId={loaderData?.folderId ?? "root"}

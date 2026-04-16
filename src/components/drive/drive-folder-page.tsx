@@ -94,6 +94,7 @@ function formatMimeTypeLabel(mimeType: string): string {
 }
 
 type DriveFolderPageProps = {
+  isAuthenticated: boolean;
   user: {
     name?: string | null;
     email?: string | null;
@@ -159,6 +160,7 @@ function DriveItemIcon({ item }: { item: DriveItem }) {
 }
 
 export function DriveFolderPage({
+  isAuthenticated,
   user,
   initialData,
   currentFolderId,
@@ -805,9 +807,19 @@ export function DriveFolderPage({
 
   const content = (
     <DriveItemsView
+      isAuthenticated={isAuthenticated}
       viewMode={viewMode}
       isPending={listingQuery.isPending && !listing}
       isError={listingQuery.isError && !listing}
+      errorCode={
+        listingQuery.error && typeof listingQuery.error === "object"
+          ? "statusCode" in listingQuery.error && typeof listingQuery.error.statusCode === "number"
+            ? listingQuery.error.statusCode
+            : "status" in listingQuery.error && typeof listingQuery.error.status === "number"
+              ? listingQuery.error.status
+              : undefined
+          : undefined
+      }
       errorMessage={
         listingQuery.error instanceof Error ? listingQuery.error.message : "Could not load folder."
       }
@@ -1084,94 +1096,96 @@ export function DriveFolderPage({
       title={title}
       actions={
         <>
-          <Dialog
-            open={uploadDialogOpen}
-            onOpenChange={(nextOpen) => {
-              setUploadDialogOpen(nextOpen);
-              if (nextOpen || !nextOpen) {
+          {isAuthenticated && (
+            <Dialog
+              open={uploadDialogOpen}
+              onOpenChange={(nextOpen) => {
+                setUploadDialogOpen(nextOpen);
                 uploadForm.reset({ files: [] });
-              }
-            }}
-          >
-            <DialogTrigger render={<Button type="button" variant="outline" size="sm" />}>
-              <Upload data-icon="inline-start" />
-              Upload
-            </DialogTrigger>
-            <DialogContent className="overflow-x-hidden overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Upload files</DialogTitle>
-                <DialogDescription>
-                  Pick a destination folder, then choose files or drag-and-drop them here.
-                </DialogDescription>
-              </DialogHeader>
-              <form
-                className="min-w-0 space-y-4 overflow-x-hidden overflow-y-hidden"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void uploadForm.handleSubmit().catch(() => {});
-                }}
-              >
-                <uploadForm.Field
-                  name="files"
-                  children={(field) => {
-                    const errors = formatFieldErrors(field.state.meta.errors);
-                    return (
-                      <div className="min-w-0 space-y-2">
-                        <FileDropzone
-                          files={field.state.value}
-                          onFilesChange={field.handleChange}
-                        />
-                        {errors.length > 0 && (
-                          <p className="text-xs text-destructive">{errors.join(" ")}</p>
-                        )}
-                      </div>
-                    );
+              }}
+            >
+              <DialogTrigger render={<Button type="button" variant="outline" size="sm" />}>
+                <Upload data-icon="inline-start" />
+                Upload
+              </DialogTrigger>
+              <DialogContent className="overflow-x-hidden overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Upload files</DialogTitle>
+                  <DialogDescription>
+                    Pick a destination folder, then choose files or drag-and-drop them here.
+                  </DialogDescription>
+                </DialogHeader>
+                <form
+                  className="min-w-0 space-y-4 overflow-x-hidden overflow-y-hidden"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void uploadForm.handleSubmit().catch(() => {});
                   }}
-                />
-
-                <uploadForm.Subscribe
-                  selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-                  children={([canSubmit, isSubmitting]) => (
-                    <DialogFooter>
-                      <Button type="submit" disabled={!canSubmit || isSubmitting}>
-                        {isSubmitting ? "Uploading..." : "Upload"}
-                      </Button>
-                    </DialogFooter>
-                  )}
-                />
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
-            <DialogTrigger render={<Button type="button" size="sm" />}>
-              <FolderPlus data-icon="inline-start" />
-              New folder
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>New folder</DialogTitle>
-                <DialogDescription>Create a new folder in this location.</DialogDescription>
-              </DialogHeader>
-              <form className="space-y-4" onSubmit={(event) => void handleCreateFolder(event)}>
-                <div className="space-y-2">
-                  <Label htmlFor="new-nested-folder-name">Folder name</Label>
-                  <Input
-                    id="new-nested-folder-name"
-                    value={newFolderName}
-                    onChange={(event) => setNewFolderName(event.target.value)}
-                    placeholder="Enter folder name"
-                    autoFocus
+                >
+                  <uploadForm.Field
+                    name="files"
+                    children={(field) => {
+                      const errors = formatFieldErrors(field.state.meta.errors);
+                      return (
+                        <div className="min-w-0 space-y-2">
+                          <FileDropzone
+                            files={field.state.value}
+                            onFilesChange={field.handleChange}
+                          />
+                          {errors.length > 0 && (
+                            <p className="text-xs text-destructive">{errors.join(" ")}</p>
+                          )}
+                        </div>
+                      );
+                    }}
                   />
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={isCreatingFolder || !newFolderName.trim()}>
-                    {isCreatingFolder ? "Creating..." : "Create folder"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+
+                  <uploadForm.Subscribe
+                    selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                    children={([canSubmit, isSubmitting]) => (
+                      <DialogFooter>
+                        <Button type="submit" disabled={!canSubmit || isSubmitting}>
+                          {isSubmitting ? "Uploading..." : "Upload"}
+                        </Button>
+                      </DialogFooter>
+                    )}
+                  />
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {isAuthenticated && (
+            <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
+              <DialogTrigger render={<Button type="button" size="sm" />}>
+                <FolderPlus data-icon="inline-start" />
+                New folder
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>New folder</DialogTitle>
+                  <DialogDescription>Create a new folder in this location.</DialogDescription>
+                </DialogHeader>
+                <form className="space-y-4" onSubmit={(event) => void handleCreateFolder(event)}>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-nested-folder-name">Folder name</Label>
+                    <Input
+                      id="new-nested-folder-name"
+                      value={newFolderName}
+                      onChange={(event) => setNewFolderName(event.target.value)}
+                      placeholder="Enter folder name"
+                      autoFocus
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit" disabled={isCreatingFolder || !newFolderName.trim()}>
+                      {isCreatingFolder ? "Creating..." : "Create folder"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
 
           <div className="flex items-center rounded-[10px] border border-border bg-card p-0.5">
             <Button

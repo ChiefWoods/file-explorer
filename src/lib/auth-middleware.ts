@@ -33,14 +33,19 @@ export const authRequestMiddleware = createMiddleware({ type: "request" }).serve
       return toRedirectResponse(url.origin, authContext.isAuthenticated ? "/drive" : "/sign-in");
     }
 
-    if (
-      (pathname.startsWith("/drive") || pathname.startsWith("/shared")) &&
-      !authContext.isAuthenticated
-    ) {
+    const isDriveRoot = pathname === "/drive" || pathname === "/drive/";
+    const isDriveNested = pathname.startsWith("/drive/");
+    const isSharedRoute = pathname.startsWith("/shared");
+
+    if ((isDriveRoot || isSharedRoute) && !authContext.isAuthenticated) {
       const target = safeInternalPath(`${pathname}${url.search}`, "/drive");
       const signInUrl = new URL("/sign-in", url.origin);
       signInUrl.searchParams.set("redirect", target);
       return Response.redirect(signInUrl, 307);
+    }
+
+    if (isDriveNested && !authContext.isAuthenticated) {
+      return next({ context: authContext });
     }
 
     if (pathname === "/sign-in" && authContext.isAuthenticated) {
