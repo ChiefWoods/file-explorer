@@ -9,9 +9,6 @@ export default defineConfig({
       config: {},
     },
   },
-  rules: {
-    "tailwindcss/classnames-order": "error",
-  },
   overrides: [
     {
       files: ["**/*.{ts,tsx}"],
