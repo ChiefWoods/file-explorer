@@ -1,5 +1,6 @@
 import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
 
+import { useDriveSidebarState } from "#/components/drive/drive-sidebar-state";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/components/ui/collapsible";
 import {
@@ -38,7 +39,6 @@ import {
   Share2,
   User,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import ThemeToggle from "../ThemeToggle";
 
@@ -83,17 +83,11 @@ export function DriveSidebar({
   const activeSection: DriveSection = location.pathname.startsWith("/shared")
     ? "shared"
     : "my-drive";
-  const [isMyDriveOpen, setIsMyDriveOpen] = useState(true);
+  const { isMyDriveOpen, setIsMyDriveOpen } = useDriveSidebarState();
   const userName = user.name?.trim() || "User";
   const userEmail = user.email?.trim() || "No email";
   const storageProgressClassName =
     storagePct >= 95 ? "bg-red-500" : storagePct >= 75 ? "bg-amber-500" : "bg-primary";
-
-  useEffect(() => {
-    if (activeSection === "my-drive") {
-      setIsMyDriveOpen(true);
-    }
-  }, [activeSection]);
 
   return (
     <Sidebar className="w-[264px] border-border bg-(--sidebar) p-2">
@@ -290,15 +284,10 @@ function DriveSidebarFolderTreeItem({
 }) {
   const isCurrent = folder.id === currentFolderId;
   const hasChildren = folder.children.length > 0;
+  const { isFolderOpen, setFolderOpen } = useDriveSidebarState();
   const isInActiveBranch =
     !!currentFolderId && folder.children.some((child) => containsFolderId(child, currentFolderId));
-  const [isOpen, setIsOpen] = useState(isInActiveBranch || isCurrent);
-
-  useEffect(() => {
-    if (isInActiveBranch || isCurrent) {
-      setIsOpen(true);
-    }
-  }, [isCurrent, isInActiveBranch]);
+  const isOpen = isFolderOpen(folder.id) || isInActiveBranch || isCurrent;
 
   if (!hasChildren) {
     return (
@@ -321,7 +310,11 @@ function DriveSidebarFolderTreeItem({
 
   return (
     <SidebarMenuSubItem>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="group/collapsible">
+      <Collapsible
+        open={isOpen}
+        onOpenChange={(nextOpen) => setFolderOpen(folder.id, nextOpen)}
+        className="group/collapsible"
+      >
         <div className="relative">
           <SidebarMenuSubButton
             render={<button type="button" />}

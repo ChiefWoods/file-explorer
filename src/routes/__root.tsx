@@ -1,3 +1,4 @@
+import { DriveSidebarStateProvider } from "#/components/drive/drive-sidebar-state";
 import { ErrorPage } from "#/components/shared/error-page";
 import { getSession } from "#/lib/auth.functions";
 import { TanStackDevtools } from "@tanstack/react-devtools";
@@ -122,7 +123,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans wrap-anywhere antialiased selection:bg-[rgba(79,184,178,0.24)]">
-        {children}
+        <DriveSidebarStateProvider>{children}</DriveSidebarStateProvider>
         <TanStackDevtools
           config={{
             position: "bottom-right",
