@@ -24,7 +24,7 @@ export function DriveItemsGrid({
   renderItemIcon,
 }: DriveItemsGridProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
       {items.map((item) => {
         const selected = selectedIds.has(item.id);
         return (
@@ -44,16 +44,16 @@ export function DriveItemsGrid({
                 onToggleSelect(item.id);
               }
             }}
-            className={`rounded-xl border p-4 text-left transition ${
+            className={`flex min-h-[112px] flex-col rounded-xl border p-4 text-left transition ${
               selected
                 ? "border-primary bg-(--surface)"
                 : "border-border bg-card hover:bg-(--surface)/60"
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2 text-(--sea-ink)">
-                {renderItemIcon(item)}
-                <p className="m-0 text-sm font-semibold">{item.name}</p>
+              <div className="flex min-w-0 items-start gap-2 text-(--sea-ink)">
+                <span className="mt-0.5 shrink-0 self-start">{renderItemIcon(item)}</span>
+                <p className="m-0 min-w-0 text-sm font-semibold">{item.name}</p>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -114,7 +114,7 @@ export function DriveItemsGrid({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <p className="mt-2 text-xs text-(--sea-ink-soft)">
+            <p className="mt-auto pt-2 text-xs text-(--sea-ink-soft)">
               {item.modified} · {item.type === "folder" ? "Folder" : formatBytes(item.bytes)}
             </p>
           </div>
