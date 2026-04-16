@@ -1,29 +1,14 @@
 import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
 import { DriveFolderPage } from "#/components/drive/drive-folder-page";
-import { getSession } from "#/lib/auth.functions";
 import { loadDriveListing } from "#/lib/drive-listing.server-fns";
-import { safeInternalPath } from "#/lib/nav-redirect";
-import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router";
+import { Route as RootRoute } from "#/routes/__root";
+import { Outlet, createFileRoute, useLocation } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/drive/")({
   head: () => ({
     meta: [{ title: "My Drive - File Uploader" }],
   }),
-  beforeLoad: async ({ location }) => {
-    const session = await getSession();
-    if (!session?.session) {
-      const href = `${location.pathname}${location.searchStr}`;
-      throw redirect({
-        to: "/sign-in",
-        search: { redirect: safeInternalPath(href, "/drive") },
-      });
-    }
-    return {
-      user: session.user,
-      session: session.session,
-    };
-  },
   loader: async ({ location }) => {
     if (location.pathname !== "/drive") {
       return null;
@@ -41,7 +26,11 @@ export const Route = createFileRoute("/drive/")({
 function DrivePage() {
   const location = useLocation();
   const loaderData = Route.useLoaderData() as DriveFolderListingResponse | null;
-  const { user } = Route.useRouteContext();
+  const { user } = RootRoute.useRouteContext();
+
+  if (!user) {
+    return null;
+  }
 
   if (location.pathname !== "/drive") {
     return <Outlet />;

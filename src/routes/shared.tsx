@@ -14,14 +14,13 @@ import {
 } from "#/components/ui/table";
 import { auth } from "#/lib/auth";
 import { authClient } from "#/lib/auth-client";
-import { getSession } from "#/lib/auth.functions";
 import { prisma } from "#/lib/db";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { getDriveSidebarFolders, getFolderIdPath } from "#/lib/drive-repository";
-import { safeInternalPath } from "#/lib/nav-redirect";
 import { queryKeys } from "#/lib/query-keys";
+import { Route as RootRoute } from "#/routes/__root";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { Copy, CopyCheck, Share2, Trash2 } from "lucide-react";
@@ -106,20 +105,6 @@ export const Route = createFileRoute("/shared")({
   head: () => ({
     meta: [{ title: "Shared - File Uploader" }],
   }),
-  beforeLoad: async ({ location }) => {
-    const session = await getSession();
-    if (!session?.session) {
-      const href = `${location.pathname}${location.searchStr}`;
-      throw redirect({
-        to: "/sign-in",
-        search: { redirect: safeInternalPath(href, "/shared") },
-      });
-    }
-    return {
-      user: session.user,
-      session: session.session,
-    };
-  },
   loader: async () => {
     return getSharedLoaderData();
   },
@@ -128,7 +113,7 @@ export const Route = createFileRoute("/shared")({
 
 function SharedPage() {
   const router = useRouter();
-  const { user } = Route.useRouteContext();
+  const { user } = RootRoute.useRouteContext();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [deletingShareIds, setDeletingShareIds] = useState<Set<string>>(new Set());
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
@@ -144,6 +129,10 @@ function SharedPage() {
   const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
   const links = data.links;
   const sidebarFolders = data.sidebarFolders;
+
+  if (!user) {
+    return null;
+  }
 
   async function signOut() {
     if (isSigningOut) {
@@ -247,7 +236,7 @@ function SharedPage() {
           description="Create a share link from a folder menu and it will appear here."
         />
       ) : (
-        <div className="border-border bg-card overflow-hidden rounded-xl border">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">

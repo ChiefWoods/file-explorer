@@ -5,12 +5,11 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "#/components/ui/field
 import { Input } from "#/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { authClient } from "#/lib/auth-client";
-import { getSession } from "#/lib/auth.functions";
 import { formatFieldErrors } from "#/lib/field-errors";
 import { safeInternalPath } from "#/lib/nav-redirect";
 import { signinFormSchema, signupFormSchema } from "#/lib/schemas/auth-forms";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -41,12 +40,6 @@ export const Route = createFileRoute("/sign-in")({
   validateSearch: (raw: Record<string, unknown>): { redirect: string | undefined } => ({
     redirect: typeof raw.redirect === "string" ? raw.redirect : undefined,
   }),
-  beforeLoad: async ({ search }) => {
-    const session = await getSession();
-    if (session?.session) {
-      throw redirect({ to: safeInternalPath(search.redirect, "/drive") });
-    }
-  },
   component: SignInPage,
 });
 

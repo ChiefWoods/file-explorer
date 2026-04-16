@@ -1,6 +1,8 @@
 import { DriveSidebarStateProvider } from "#/components/drive/drive-sidebar-state";
 import { ErrorPage } from "#/components/shared/error-page";
+import { authRequestMiddleware } from "#/lib/auth-middleware";
 import { getSession } from "#/lib/auth.functions";
+import { safeInternalPath } from "#/lib/nav-redirect";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Scripts, createRootRoute, redirect } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
@@ -12,11 +14,37 @@ import appCss from "../styles.css?url";
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var mode=stored==='light'||stored==='dark'?stored:(prefersDark?'dark':'light');var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(mode);root.setAttribute('data-theme',mode);root.style.colorScheme=mode;}catch(e){}})();`;
 
 export const Route = createRootRoute({
-  beforeLoad: async ({ location }) => {
-    if (location.pathname === "/") {
-      const session = await getSession();
-      throw redirect({ to: session?.session ? "/drive" : "/sign-in" });
+  server: {
+    middleware: [authRequestMiddleware],
+  },
+  beforeLoad: async ({ location, serverContext }) => {
+    if (serverContext) {
+      return {
+        user: serverContext.user ?? null,
+        session: serverContext.session ?? null,
+      };
     }
+
+    const sessionResult = await getSession();
+    const isProtectedRoute =
+      location.pathname.startsWith("/drive") || location.pathname.startsWith("/shared");
+
+    if (location.pathname === "/") {
+      throw redirect({ to: sessionResult?.session ? "/drive" : "/sign-in" });
+    }
+
+    if (isProtectedRoute && !sessionResult?.session) {
+      const href = `${location.pathname}${location.searchStr}`;
+      throw redirect({
+        to: "/sign-in",
+        search: { redirect: safeInternalPath(href, "/drive") },
+      });
+    }
+
+    return {
+      user: sessionResult?.user ?? null,
+      session: sessionResult?.session ?? null,
+    };
   },
   head: () => ({
     meta: [
