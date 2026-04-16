@@ -13,6 +13,7 @@ import {
 } from "#/components/ui/breadcrumb";
 import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
+import { Calendar } from "#/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,7 @@ import {
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -54,6 +56,8 @@ import {
   FolderPlus,
   Grid3X3,
   List,
+  Calendar as CalendarIcon,
+  ChevronRight,
   Trash2,
   Upload,
   X,
@@ -63,7 +67,13 @@ import { toast } from "sonner";
 
 type DriveItem = DriveItemRecord & { mimeType?: string; modifiedAtMs: number };
 type TypeFilterValue = "folders" | string;
-type AddedFilterValue = "today" | "last-7-days" | "last-30-days" | "this-year" | "last-year";
+type AddedFilterValue =
+  | "today"
+  | "last-7-days"
+  | "last-30-days"
+  | "this-year"
+  | "last-year"
+  | "custom-range";
 
 const MIME_TYPE_FILTER_OPTIONS = [...ALLOWED_UPLOAD_MIME_TYPES].sort();
 
@@ -101,6 +111,18 @@ function formatModifiedAt(dateString: string): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+function formatDateInputLabel(date: Date | undefined, placeholder: string): string {
+  if (!date) {
+    return placeholder;
+  }
+
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
   const folders: DriveItem[] = listing.folders.map((folder) => ({
     id: folder.id,
@@ -125,15 +147,15 @@ function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
 
 function DriveItemIcon({ item }: { item: DriveItem }) {
   if (item.type === "folder") {
-    return <FolderOpen className="text-primary size-4" aria-hidden />;
+    return <FolderOpen className="size-4 text-primary" aria-hidden />;
   }
   if (item.mimeType?.startsWith("image/")) {
-    return <FileImage className="text-primary size-4" aria-hidden />;
+    return <FileImage className="size-4 text-primary" aria-hidden />;
   }
   if (item.mimeType?.includes("csv") || item.mimeType?.includes("excel")) {
-    return <FileSpreadsheet className="text-primary size-4" aria-hidden />;
+    return <FileSpreadsheet className="size-4 text-primary" aria-hidden />;
   }
-  return <FileText className="text-primary size-4" aria-hidden />;
+  return <FileText className="size-4 text-primary" aria-hidden />;
 }
 
 export function DriveFolderPage({
@@ -168,6 +190,12 @@ export function DriveFolderPage({
   const [didCopyShareLink, setDidCopyShareLink] = useState(false);
   const [typeFilter, setTypeFilter] = useState<TypeFilterValue | null>(null);
   const [addedFilter, setAddedFilter] = useState<AddedFilterValue | null>(null);
+  const [isAddedFilterOpen, setIsAddedFilterOpen] = useState(false);
+  const [isAddedCustomRangeExpanded, setIsAddedCustomRangeExpanded] = useState(false);
+  const [isCustomAfterPickerOpen, setIsCustomAfterPickerOpen] = useState(false);
+  const [isCustomBeforePickerOpen, setIsCustomBeforePickerOpen] = useState(false);
+  const [customAddedAfter, setCustomAddedAfter] = useState<Date | undefined>(undefined);
+  const [customAddedBefore, setCustomAddedBefore] = useState<Date | undefined>(undefined);
   const [shareTargetFolder, setShareTargetFolder] = useState<
     (DriveItem & { type: "folder" }) | null
   >(null);
@@ -215,7 +243,7 @@ export function DriveFolderPage({
 
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [typeFilter, addedFilter]);
+  }, [typeFilter, addedFilter, customAddedAfter, customAddedBefore]);
 
   const storageUsed = listing?.storageUsedBytes ?? 0;
   const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
@@ -743,12 +771,37 @@ export function DriveFolderPage({
       );
     }
 
+    if (addedFilter === "custom-range") {
+      const itemTime = itemDate.getTime();
+
+      if (customAddedAfter) {
+        const afterStart = new Date(customAddedAfter);
+        afterStart.setHours(0, 0, 0, 0);
+        if (itemTime < afterStart.getTime()) {
+          return false;
+        }
+      }
+
+      if (customAddedBefore) {
+        const beforeEnd = new Date(customAddedBefore);
+        beforeEnd.setHours(23, 59, 59, 999);
+        if (itemTime > beforeEnd.getTime()) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     const lookbackDays = addedFilter === "last-7-days" ? 7 : 30;
     const lookbackMs = lookbackDays * 24 * 60 * 60 * 1000;
     return now.getTime() - item.modifiedAtMs <= lookbackMs;
   }
 
   const filteredItems = items.filter(matchesTypeFilter).filter(matchesAddedFilter);
+  const hasActiveAddedFilter =
+    addedFilter !== null &&
+    (addedFilter !== "custom-range" || !!customAddedAfter || !!customAddedBefore);
 
   const content = (
     <DriveItemsView
@@ -785,7 +838,7 @@ export function DriveFolderPage({
   );
 
   const selectionRibbon = (
-    <div className="border-border bg-card flex h-full items-center justify-between rounded-xl border px-3 py-2">
+    <div className="flex h-full items-center justify-between rounded-xl border border-border bg-card px-3 py-2">
       <div className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
         <Button
           type="button"
@@ -845,10 +898,23 @@ export function DriveFolderPage({
         </SelectContent>
       </Select>
       <Select
+        open={isAddedFilterOpen}
+        onOpenChange={setIsAddedFilterOpen}
         value={addedFilter}
-        onValueChange={(value) =>
-          setAddedFilter(value ? (String(value) as AddedFilterValue) : null)
-        }
+        onValueChange={(value) => {
+          const nextValue = value ? (String(value) as AddedFilterValue) : null;
+          setAddedFilter(nextValue);
+          if (nextValue === "custom-range") {
+            setIsAddedCustomRangeExpanded(true);
+            setTimeout(() => {
+              setIsAddedFilterOpen(true);
+            }, 0);
+          } else {
+            setIsAddedCustomRangeExpanded(false);
+            setCustomAddedAfter(undefined);
+            setCustomAddedBefore(undefined);
+          }
+        }}
       >
         <SelectTrigger size="sm" className="min-w-[168px]">
           <SelectValue>
@@ -870,6 +936,20 @@ export function DriveFolderPage({
               }
               if (value === "last-year") {
                 return `Last year (${new Date().getFullYear() - 1})`;
+              }
+              if (value === "custom-range") {
+                if (customAddedAfter && customAddedBefore) {
+                  const afterLabel = formatDateInputLabel(customAddedAfter, "Any");
+                  const beforeLabel = formatDateInputLabel(customAddedBefore, "Any");
+                  return `${afterLabel} - ${beforeLabel}`;
+                }
+                if (customAddedAfter) {
+                  return `After ${formatDateInputLabel(customAddedAfter, "Any")}`;
+                }
+                if (customAddedBefore) {
+                  return `Before ${formatDateInputLabel(customAddedBefore, "Any")}`;
+                }
+                return "Custom range";
               }
               return "Added";
             }}
@@ -894,9 +974,86 @@ export function DriveFolderPage({
           <SelectItem value="last-year" label={`Last year (${new Date().getFullYear() - 1})`}>
             Last year ({new Date().getFullYear() - 1})
           </SelectItem>
+          <button
+            type="button"
+            className="relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setAddedFilter("custom-range");
+              setIsAddedCustomRangeExpanded((prev) => !prev);
+            }}
+          >
+            <span className="flex flex-1 items-center gap-2 whitespace-nowrap">
+              Custom date range
+            </span>
+            <ChevronRight
+              className={`size-4 text-muted-foreground transition-transform ${isAddedCustomRangeExpanded ? "rotate-90" : ""}`}
+            />
+          </button>
+          {isAddedCustomRangeExpanded && (
+            <div className="mt-1 space-y-2 border-t border-border p-2">
+              <Popover open={isCustomAfterPickerOpen} onOpenChange={setIsCustomAfterPickerOpen}>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                    />
+                  }
+                >
+                  <CalendarIcon />
+                  {formatDateInputLabel(customAddedAfter, "After")}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customAddedAfter}
+                    onSelect={(date) => {
+                      setCustomAddedAfter(date ?? undefined);
+                      if (customAddedBefore && date && customAddedBefore < date) {
+                        setCustomAddedBefore(date);
+                      }
+                      setIsCustomAfterPickerOpen(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+              <Popover open={isCustomBeforePickerOpen} onOpenChange={setIsCustomBeforePickerOpen}>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                    />
+                  }
+                >
+                  <CalendarIcon />
+                  {formatDateInputLabel(customAddedBefore, "Before")}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customAddedBefore}
+                    onSelect={(date) => {
+                      setCustomAddedBefore(date ?? undefined);
+                      if (customAddedAfter && date && customAddedAfter > date) {
+                        setCustomAddedAfter(date);
+                      }
+                      setIsCustomBeforePickerOpen(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
         </SelectContent>
       </Select>
-      {(typeFilter || addedFilter) && (
+      {(typeFilter || hasActiveAddedFilter) && (
         <Button
           type="button"
           variant="ghost"
@@ -904,6 +1061,9 @@ export function DriveFolderPage({
           onClick={() => {
             setTypeFilter(null);
             setAddedFilter(null);
+            setIsAddedCustomRangeExpanded(false);
+            setCustomAddedAfter(undefined);
+            setCustomAddedBefore(undefined);
           }}
         >
           Clear filters
@@ -962,7 +1122,7 @@ export function DriveFolderPage({
                           onFilesChange={field.handleChange}
                         />
                         {errors.length > 0 && (
-                          <p className="text-destructive text-xs">{errors.join(" ")}</p>
+                          <p className="text-xs text-destructive">{errors.join(" ")}</p>
                         )}
                       </div>
                     );
@@ -1013,7 +1173,7 @@ export function DriveFolderPage({
             </DialogContent>
           </Dialog>
 
-          <div className="border-border bg-card flex items-center rounded-[10px] border p-0.5">
+          <div className="flex items-center rounded-[10px] border border-border bg-card p-0.5">
             <Button
               type="button"
               variant={viewMode === "list" ? "secondary" : "ghost"}
@@ -1105,7 +1265,7 @@ export function DriveFolderPage({
           </DialogHeader>
           {existingShareReminder && (
             <div className="space-y-2">
-              <p className="border-border bg-muted/40 rounded-md border px-3 py-2 text-sm text-(--sea-ink-soft)">
+              <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-(--sea-ink-soft)">
                 {existingShareReminder}
               </p>
               <p className="text-xs text-(--sea-ink-soft)">
