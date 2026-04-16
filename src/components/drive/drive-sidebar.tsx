@@ -47,12 +47,12 @@ import ThemeToggle from "../ThemeToggle";
 
 type DriveSection = "my-drive" | "shared";
 type SidebarUser = {
-  name?: string | null;
-  email?: string | null;
+  name: string;
+  email: string;
 };
 
 type DriveSidebarProps = {
-  user: SidebarUser;
+  user: SidebarUser | null;
   storageUsed: number;
   storagePct: number;
   isSigningOut: boolean;
@@ -90,8 +90,8 @@ export function DriveSidebar({
     ? "shared"
     : "my-drive";
   const { isMyDriveOpen, setIsMyDriveOpen } = useDriveSidebarState();
-  const userName = user.name?.trim() || "User";
-  const userEmail = user.email?.trim() || "No email";
+  const userName = user?.name?.trim() || "User";
+  const userEmail = user?.email?.trim() || "No email";
   const storageProgressClassName =
     storagePct >= 95 ? "bg-red-500" : storagePct >= 75 ? "bg-amber-500" : "bg-primary";
 

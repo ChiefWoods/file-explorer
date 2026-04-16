@@ -4,12 +4,12 @@ import { DriveSidebar } from "#/components/drive/drive-sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
 
 type SidebarUser = {
-  name?: string | null;
-  email?: string | null;
+  name: string;
+  email: string;
 };
 
 type DriveShellProps = {
-  user: SidebarUser;
+  user: SidebarUser | null;
   storageUsed: number;
   storagePct: number;
   isSigningOut: boolean;

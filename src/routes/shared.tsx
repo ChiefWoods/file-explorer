@@ -130,10 +130,6 @@ function SharedPage() {
   const links = data.links;
   const sidebarFolders = data.sidebarFolders;
 
-  if (!user) {
-    return null;
-  }
-
   async function signOut() {
     if (isSigningOut) {
       return;

@@ -94,11 +94,10 @@ function formatMimeTypeLabel(mimeType: string): string {
 }
 
 type DriveFolderPageProps = {
-  isAuthenticated: boolean;
   user: {
-    name?: string | null;
-    email?: string | null;
-  };
+    name: string;
+    email: string;
+  } | null;
   initialData?: DriveFolderListingResponse;
   currentFolderId: string;
   pathSegments: string[];
@@ -160,7 +159,6 @@ function DriveItemIcon({ item }: { item: DriveItem }) {
 }
 
 export function DriveFolderPage({
-  isAuthenticated,
   user,
   initialData,
   currentFolderId,
@@ -807,7 +805,7 @@ export function DriveFolderPage({
 
   const content = (
     <DriveItemsView
-      isAuthenticated={isAuthenticated}
+      isAuthenticated={!!user}
       viewMode={viewMode}
       isPending={listingQuery.isPending && !listing}
       isError={listingQuery.isError && !listing}
@@ -1096,7 +1094,7 @@ export function DriveFolderPage({
       title={title}
       actions={
         <>
-          {isAuthenticated && (
+          {!!user && (
             <Dialog
               open={uploadDialogOpen}
               onOpenChange={(nextOpen) => {
@@ -1155,7 +1153,7 @@ export function DriveFolderPage({
             </Dialog>
           )}
 
-          {isAuthenticated && (
+          {!!user && (
             <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
               <DialogTrigger render={<Button type="button" size="sm" />}>
                 <FolderPlus data-icon="inline-start" />

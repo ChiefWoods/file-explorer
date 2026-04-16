@@ -29,7 +29,7 @@ export const Route = createFileRoute("/drive/$")({
 });
 
 function DriveAbsoluteFolderRoutePage() {
-  const { user, session } = RootRoute.useRouteContext();
+  const { user } = RootRoute.useRouteContext();
   const params = Route.useParams();
   const initialData = Route.useLoaderData() as DriveFolderListingResponse | null;
   const currentFolderId = getFolderIdFromSplat(params) ?? initialData?.folderId ?? "";
@@ -41,8 +41,7 @@ function DriveAbsoluteFolderRoutePage() {
 
   return (
     <DriveFolderPage
-      isAuthenticated={Boolean(session)}
-      user={user ?? {}}
+      user={user}
       initialData={initialData ?? undefined}
       currentFolderId={currentFolderId}
       pathSegments={pathSegments}

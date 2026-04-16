@@ -6,7 +6,6 @@ import { createMiddleware } from "@tanstack/react-start";
 type SessionResult = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
 type AuthContext = {
-  isAuthenticated: boolean;
   session: SessionResult["session"] | null;
   user: SessionResult["user"] | null;
 };
@@ -18,7 +17,6 @@ export const authRequestMiddleware = createMiddleware({
   const url = new URL(request.url);
   const sessionResult = await auth.api.getSession({ headers });
   const authContext: AuthContext = {
-    isAuthenticated: Boolean(sessionResult?.session),
     session: sessionResult?.session ?? null,
     user: sessionResult?.user ?? null,
   };
@@ -29,7 +27,7 @@ export const authRequestMiddleware = createMiddleware({
 
   if (pathname === "/") {
     throw redirect({
-      to: authContext.isAuthenticated ? "/drive" : "/sign-in",
+      to: authContext.session ? "/drive" : "/sign-in",
       replace: true,
     });
   }
@@ -38,7 +36,7 @@ export const authRequestMiddleware = createMiddleware({
   const isDriveNested = pathname.startsWith("/drive/");
   const isSharedRoute = pathname.startsWith("/shared");
 
-  if ((isDriveRoot || isSharedRoute) && !authContext.isAuthenticated) {
+  if ((isDriveRoot || isSharedRoute) && !authContext.session) {
     const target = safeInternalPath(`${pathname}${url.search}`, "/drive");
     throw redirect({
       to: "/sign-in",
@@ -47,11 +45,11 @@ export const authRequestMiddleware = createMiddleware({
     });
   }
 
-  if (isDriveNested && !authContext.isAuthenticated) {
+  if (isDriveNested && !authContext.session) {
     return next({ context: authContext });
   }
 
-  if (pathname === "/sign-in" && authContext.isAuthenticated) {
+  if (pathname === "/sign-in" && authContext.session) {
     const target = safeInternalPath(url.searchParams.get("redirect") ?? undefined, "/drive");
     throw redirect({ to: target, replace: true });
   }

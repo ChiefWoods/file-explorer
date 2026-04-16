@@ -30,11 +30,7 @@ export const Route = createFileRoute("/drive/")({
 function DrivePage() {
   const location = useLocation();
   const loaderData = Route.useLoaderData() as DriveFolderListingResponse | null;
-  const { user, session } = RootRoute.useRouteContext();
-
-  if (!user) {
-    return null;
-  }
+  const { user } = RootRoute.useRouteContext();
 
   if (location.pathname !== "/drive") {
     return <Outlet />;
@@ -42,7 +38,6 @@ function DrivePage() {
 
   return (
     <DriveFolderPage
-      isAuthenticated={Boolean(session)}
       user={user}
       initialData={loaderData ?? undefined}
       currentFolderId={loaderData?.folderId ?? "root"}
