@@ -110,9 +110,12 @@ export function buildCloudinaryDownloadUrl(secureUrl: string, fileName?: string)
     return secureUrl;
   }
 
-  const attachment = fileName?.trim()
-    ? `fl_attachment:${encodeURIComponent(fileName.trim())}`
-    : "fl_attachment";
+  const isRaw = secureUrl.includes("/raw/upload/");
+  const attachment = isRaw
+    ? "fl_attachment"
+    : fileName?.trim()
+      ? `fl_attachment:${encodeURIComponent(fileName.trim())}`
+      : "fl_attachment";
 
   return secureUrl.replace("/upload/", `/upload/${attachment}/`);
 }
