@@ -129,7 +129,9 @@ function RouteComponent() {
       copiedResetTimer.current = setTimeout(() => {
         setCopiedShareId(null);
       }, 1200);
-    } catch {}
+    } catch {
+      throw new Error("Unable to copy share link to clipboard.");
+    }
   }
 
   return (

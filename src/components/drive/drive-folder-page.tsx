@@ -482,7 +482,9 @@ export function DriveFolderPage({
     try {
       await navigator.clipboard.writeText(url);
       setDidCopyShareLink(true);
-    } catch {}
+    } catch {
+      throw new Error("Unable to copy share link to clipboard.");
+    }
   }
 
   async function deleteSelected() {
