@@ -196,9 +196,6 @@ export function DriveFolderPage({
     (DriveItem & { type: "folder" }) | null
   >(null);
   const [existingShareReminder, setExistingShareReminder] = useState<string | null>(null);
-  const [items, setItems] = useState<DriveItem[]>(() =>
-    initialData ? mapListingToItems(initialData) : [],
-  );
   const selectedCount = selectedIds.size;
 
   const listingQuery = useQuery({
@@ -208,14 +205,10 @@ export function DriveFolderPage({
     staleTime: 30_000,
   });
   const listing = listingQuery.data ?? initialData;
+  const items = listing ? mapListingToItems(listing) : [];
   const resolvedFolderId = listing?.folderId ?? currentFolderId;
 
   useEffect(() => {
-    if (!listing) {
-      setItems([]);
-      return;
-    }
-    setItems(mapListingToItems(listing));
     setSelectedIds(new Set());
   }, [listing]);
 
