@@ -37,7 +37,7 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
     <div className="min-w-0 space-y-2">
       <div
         className={`min-w-0 cursor-pointer overflow-hidden rounded-xl border border-dashed p-6 text-center outline-none ${
-          isDragActive ? "border-(--primary) bg-(--surface)" : "border-border bg-card"
+          isDragActive ? "border-primary bg-(--surface)" : "border-border bg-card"
         } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
         role="button"
         tabIndex={disabled ? -1 : 0}
@@ -85,7 +85,7 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
                   key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
                   className="flex min-w-0 items-center gap-2"
                 >
-                  <ItemIcon className="size-3.5 shrink-0 text-(--primary)" aria-hidden />
+                  <ItemIcon className="size-3.5 shrink-0 text-primary" aria-hidden />
                   <span className="min-w-0 flex-1 truncate text-sm text-(--sea-ink)">
                     {file.name}
                   </span>
