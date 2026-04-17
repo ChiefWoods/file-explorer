@@ -37,7 +37,6 @@ import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { fetchDriveListing } from "#/lib/drive-listing";
 import { persistDriveViewMode, readDriveViewModeFromStorage } from "#/lib/drive-view-mode";
 import { formatFieldErrors } from "#/lib/field-errors";
-import { formatBytes } from "#/lib/format-bytes";
 import { queryKeys } from "#/lib/query-keys";
 import { uploadFilesFormSchema } from "#/lib/schemas/drive-forms";
 import { SHARE_DURATION_PRESETS, type ShareDurationPreset } from "#/lib/share-duration";
@@ -818,7 +817,6 @@ export function DriveFolderPage({
       onDeleteItem={(item) => {
         void handleDeleteItem(item as DriveItem);
       }}
-      formatBytes={formatBytes}
       renderItemIcon={(item) => <DriveItemIcon item={item as DriveItem} />}
     />
   );

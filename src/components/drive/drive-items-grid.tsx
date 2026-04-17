@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { formatBytes } from "#/lib/format-bytes";
 import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
 
 type DriveItemsGridProps = DriveItemsViewProps;
@@ -21,7 +22,6 @@ export function DriveItemsGrid({
   onDownloadItem,
   onShareItem,
   onDeleteItem,
-  formatBytes,
   renderItemIcon,
 }: DriveItemsGridProps) {
   return (

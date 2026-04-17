@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
+import { formatBytes } from "#/lib/format-bytes";
 import { cn } from "#/lib/utils";
 import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
 
@@ -32,7 +33,6 @@ export function DriveItemsTable({
   onDownloadItem,
   onShareItem,
   onDeleteItem,
-  formatBytes,
   renderItemIcon,
 }: DriveItemsTableProps) {
   return (
