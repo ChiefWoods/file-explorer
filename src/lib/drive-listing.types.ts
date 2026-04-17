@@ -16,4 +16,5 @@ export type DriveFolderListingResponse = {
   folders: Array<{ id: string; name: string; modifiedAt: string }>;
   files: Array<{ id: string; name: string; modifiedAt: string; bytes: number; mimeType: string }>;
   storageUsedBytes: number;
+  storagePct: number;
 };

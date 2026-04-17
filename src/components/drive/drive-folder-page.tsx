@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { fetchDriveListing } from "#/lib/drive-listing";
 import { persistDriveViewMode, readDriveViewModeFromStorage } from "#/lib/drive-view-mode";
 import { formatFieldErrors } from "#/lib/field-errors";
@@ -242,12 +241,9 @@ export function DriveFolderPage({
     setSelectedIds(new Set());
   }, [typeFilter, addedFilter, customAddedAfter, customAddedBefore]);
 
-  const storageUsed = listing?.storageUsedBytes ?? 0;
-  const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
   const breadcrumbs = listing?.breadcrumbs ?? [];
   const activeFolderName = breadcrumbs.at(-1)?.name ?? null;
   const visibleBreadcrumbs = breadcrumbs.slice(1);
-  const sidebarNestedFolders = listing?.sidebarFolders ?? [];
 
   useEffect(() => {
     if (pathSegments.length === 0) {
@@ -1058,11 +1054,6 @@ export function DriveFolderPage({
 
   return (
     <DriveShell
-      user={user}
-      storageUsed={storageUsed}
-      storagePct={storagePct}
-      currentFolderId={resolvedFolderId}
-      nestedFolders={sidebarNestedFolders}
       title={title}
       actions={
         <>

@@ -1,6 +1,5 @@
 import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
 
-import { useDriveSidebarState } from "#/components/drive/drive-sidebar-state";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/components/ui/collapsible";
 import {
@@ -43,17 +42,13 @@ import {
   Share2,
   User,
 } from "lucide-react";
+import { useState } from "react";
 
 import ThemeToggle from "../ThemeToggle";
 
 type DriveSection = "my-drive" | "shared";
-type SidebarUser = {
-  name: string;
-  email: string;
-};
 
 type DriveSidebarProps = {
-  user: SidebarUser | null;
   storageUsed: number;
   storagePct: number;
   currentFolderId?: string;
@@ -70,7 +65,6 @@ const DRIVE_SECTION_ITEMS: Array<{
 ];
 
 export function DriveSidebar({
-  user,
   storageUsed,
   storagePct,
   currentFolderId,
@@ -80,18 +74,35 @@ export function DriveSidebar({
   const navigate = useNavigate();
   const location = useLocation();
   const { isSigningOut, signOut } = useSignOut();
-  const { session } = RootRoute.useRouteContext();
+  const { session, user } = RootRoute.useRouteContext();
   const isAuthenticated = Boolean(session);
   const isPublicSharedView = !isAuthenticated && location.pathname.startsWith("/drive/");
   const isDriveRootRoute = location.pathname === "/drive" || location.pathname === "/drive/";
   const activeSection: DriveSection = location.pathname.startsWith("/drive/shared")
     ? "shared"
     : "my-drive";
-  const { isMyDriveOpen, setIsMyDriveOpen } = useDriveSidebarState();
+  const [isMyDriveOpen, setIsMyDriveOpen] = useState(true);
+  const [openFolderIds, setOpenFolderIds] = useState<Set<string>>(new Set());
   const userName = user?.name?.trim() || "User";
   const userEmail = user?.email?.trim() || "No email";
   const storageProgressClassName =
     storagePct >= 95 ? "bg-red-500" : storagePct >= 75 ? "bg-amber-500" : "bg-primary";
+
+  function isFolderOpen(folderId: string): boolean {
+    return openFolderIds.has(folderId);
+  }
+
+  function setFolderOpen(folderId: string, isOpen: boolean) {
+    setOpenFolderIds((prev) => {
+      const next = new Set(prev);
+      if (isOpen) {
+        next.add(folderId);
+      } else {
+        next.delete(folderId);
+      }
+      return next;
+    });
+  }
 
   return (
     <Sidebar className="w-[264px] border-border bg-sidebar p-2">
@@ -158,12 +169,14 @@ export function DriveSidebar({
                             <DriveSidebarFolderTree
                               folders={nestedFolders}
                               currentFolderId={currentFolderId}
-                              onSelect={(folderPath) =>
+                              onSelect={(folderPath) => {
                                 void navigate({
                                   to: "/drive/$",
                                   params: { _splat: folderPath },
-                                })
-                              }
+                                });
+                              }}
+                              isFolderOpen={isFolderOpen}
+                              setFolderOpen={setFolderOpen}
                             />
                           )}
                         </CollapsibleContent>
@@ -177,9 +190,7 @@ export function DriveSidebar({
                     <SidebarMenuButton
                       type="button"
                       isActive={isActive}
-                      onClick={() =>
-                        void navigate({ to: item.key === "my-drive" ? "/drive" : "/drive/shared" })
-                      }
+                      onClick={() => void navigate({ to: "/drive/shared" })}
                     >
                       <Icon
                         className={`size-[18px] ${isActive ? "text-primary" : "text-(--sea-ink-soft)"}`}
@@ -195,8 +206,8 @@ export function DriveSidebar({
           <div className="rounded-xl border border-border bg-(--surface) p-3.5">
             <p className="m-0 text-xs font-semibold text-(--sea-ink)">Storage</p>
             <p className="mt-1 text-xs text-(--sea-ink-soft)">
-              {formatBytes(storageUsed, { empty: "—" })} of{" "}
-              {formatBytes(USER_STORAGE_LIMIT_BYTES, { empty: "—" })} used
+              {formatBytes(storageUsed, { empty: "—" })} of {formatBytes(USER_STORAGE_LIMIT_BYTES)}{" "}
+              used
             </p>
             <Progress className="mt-2" value={storagePct}>
               <ProgressIndicator className={storageProgressClassName} />
@@ -289,10 +300,14 @@ function DriveSidebarFolderTree({
   folders,
   currentFolderId,
   onSelect,
+  isFolderOpen,
+  setFolderOpen,
 }: {
   folders: DriveSidebarFolderNode[];
   currentFolderId?: string;
   onSelect: (folderPath: string) => void;
+  isFolderOpen: (folderId: string) => boolean;
+  setFolderOpen: (folderId: string, isOpen: boolean) => void;
 }) {
   return (
     <SidebarMenuSub>
@@ -302,6 +317,8 @@ function DriveSidebarFolderTree({
           folder={folder}
           currentFolderId={currentFolderId}
           onSelect={onSelect}
+          isFolderOpen={isFolderOpen}
+          setFolderOpen={setFolderOpen}
         />
       ))}
     </SidebarMenuSub>
@@ -312,14 +329,17 @@ function DriveSidebarFolderTreeItem({
   folder,
   currentFolderId,
   onSelect,
+  isFolderOpen,
+  setFolderOpen,
 }: {
   folder: DriveSidebarFolderNode;
   currentFolderId?: string;
   onSelect: (folderPath: string) => void;
+  isFolderOpen: (folderId: string) => boolean;
+  setFolderOpen: (folderId: string, isOpen: boolean) => void;
 }) {
   const isCurrent = folder.id === currentFolderId;
   const hasChildren = folder.children.length > 0;
-  const { isFolderOpen, setFolderOpen } = useDriveSidebarState();
   const isInActiveBranch =
     !!currentFolderId && folder.children.some((child) => containsFolderId(child, currentFolderId));
   const isOpen = isFolderOpen(folder.id) || isInActiveBranch || isCurrent;
@@ -386,6 +406,8 @@ function DriveSidebarFolderTreeItem({
             folders={folder.children}
             currentFolderId={currentFolderId}
             onSelect={onSelect}
+            isFolderOpen={isFolderOpen}
+            setFolderOpen={setFolderOpen}
           />
         </CollapsibleContent>
       </Collapsible>

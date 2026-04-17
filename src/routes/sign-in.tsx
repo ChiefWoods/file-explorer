@@ -40,10 +40,10 @@ export const Route = createFileRoute("/sign-in")({
   validateSearch: (raw: Record<string, unknown>): { redirect: string | undefined } => ({
     redirect: typeof raw.redirect === "string" ? raw.redirect : undefined,
   }),
-  component: SignInPage,
+  component: RouteComponent,
 });
 
-function SignInPage() {
+function RouteComponent() {
   const router = useRouter();
   const navigate = useNavigate();
   const { redirect: redirectTo } = Route.useSearch();

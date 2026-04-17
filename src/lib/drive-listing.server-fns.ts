@@ -9,7 +9,7 @@ export const loadDriveListing = createServerFn({ method: "GET" })
   .inputValidator(z.object({ folderId: z.string().trim().min(1) }))
   .handler(async ({ data }): Promise<DriveFolderListingResponse> => {
     const headers = getRequestHeaders();
-    const origin = headers.get("origin") ?? "http://localhost:3000";
+    const origin = headers.get("origin") ?? process.env.VITE_BASE_URL;
     return requestDriveListing(
       `${origin}/api/drive/listing?folderId=${encodeURIComponent(data.folderId)}`,
       {

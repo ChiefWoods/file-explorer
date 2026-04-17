@@ -3,6 +3,7 @@ import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 import { errorResponse, HttpError } from "#/lib/api/http";
 import { getOptionalAuthSession } from "#/lib/api/session";
 import { getUsedBytes, prisma } from "#/lib/db";
+import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import {
   ensureUserRootFolder,
   getDriveSidebarFolders,
@@ -112,6 +113,7 @@ async function handleGetDriveListing(request: Request): Promise<Response> {
         mimeType: file.mimeType,
       })),
       storageUsedBytes: usedBytes,
+      storagePct: Math.min(100, (usedBytes / USER_STORAGE_LIMIT_BYTES) * 100),
     };
 
     return Response.json(payload);

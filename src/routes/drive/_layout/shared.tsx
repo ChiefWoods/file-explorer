@@ -1,8 +1,5 @@
-import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
-
 import { DriveEmptyState } from "#/components/drive/drive-empty-state";
 import { DriveShell } from "#/components/drive/drive-shell";
-import { ErrorPage } from "#/components/shared/error-page";
 import { Button } from "#/components/ui/button";
 import {
   Table,
@@ -12,120 +9,77 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
-import { auth } from "#/lib/auth";
 import { prisma } from "#/lib/db";
-import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
-import { getDriveSidebarFolders, getFolderIdPath } from "#/lib/drive-repository";
-import { queryKeys } from "#/lib/query-keys";
-import { Route as RootRoute } from "#/routes/__root";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { getFolderIdPath } from "#/lib/drive-repository";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { Copy, CopyCheck, Share2, Trash2 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
-type SharedLoaderData = {
-  storageUsed: number;
-  sidebarFolders: DriveSidebarFolderNode[];
-  links: Array<{
-    id: string;
-    folderId: string;
-    folderName: string;
-    createdAt: string;
-    expiresAt: string | null;
-    url: string;
-  }>;
+type SharedLink = {
+  id: string;
+  folderId: string;
+  folderName: string;
+  createdAt: string;
+  expiresAt: string | null;
+  url: string;
 };
 
-const getSharedLoaderData = createServerFn({ method: "GET" }).handler(
-  async (): Promise<SharedLoaderData> => {
-    const headers = getRequestHeaders();
-    const session = await auth.api.getSession({ headers });
+const getSharedLinks = createServerFn({ method: "GET" })
+  .inputValidator(z.object({ userId: z.string() }))
+  .handler(async ({ data }): Promise<SharedLink[]> => {
+    const links = await prisma.shareLink.findMany({
+      where: {
+        createdByUserId: data.userId,
+        OR: [{ expiresAt: { gt: new Date() } }, { expiresAt: null }],
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        folderId: true,
+        createdAt: true,
+        expiresAt: true,
+        folder: { select: { name: true } },
+      },
+    });
 
-    if (!session?.user?.id) {
-      throw new Error("Authentication required.");
-    }
-
-    const [aggregate, links, sidebarFolders] = await Promise.all([
-      prisma.file.aggregate({
-        where: { userId: session.user.id },
-        _sum: { bytes: true },
+    return Promise.all(
+      links.map(async (link) => {
+        const folderPathIds = await getFolderIdPath(data.userId, link.folderId);
+        return {
+          id: link.id,
+          folderId: link.folderId,
+          folderName: link.folder.name,
+          createdAt: link.createdAt.toISOString(),
+          expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+          url: `${process.env.VITE_BASE_URL!}/drive/${folderPathIds.join("/")}`,
+        };
       }),
-      prisma.shareLink.findMany({
-        where: {
-          createdByUserId: session.user.id,
-          OR: [{ expiresAt: { gt: new Date() } }, { expiresAt: null }],
-        },
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          folderId: true,
-          createdAt: true,
-          expiresAt: true,
-          folder: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      }),
-      getDriveSidebarFolders(session.user.id),
-    ]);
+    );
+  });
 
-    return {
-      storageUsed: aggregate._sum.bytes ?? 0,
-      sidebarFolders,
-      links: await Promise.all(
-        links.map(async (link) => {
-          const folderPathIds = await getFolderIdPath(session.user.id, link.folderId);
-          return {
-            id: link.id,
-            folderId: link.folderId,
-            folderName: link.folder.name,
-            createdAt: link.createdAt.toISOString(),
-            expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
-            url: `${new URL(headers.get("origin") ?? "http://localhost:3000").origin}/drive/${folderPathIds.join("/")}`,
-          };
-        }),
-      ),
-    };
-  },
-);
-
-const sharedLoaderQueryOptions = queryOptions({
-  queryKey: queryKeys.share.links(null),
-  queryFn: () => getSharedLoaderData(),
-  staleTime: 30_000,
-});
-
-export const Route = createFileRoute("/drive/shared")({
+export const Route = createFileRoute("/drive/_layout/shared")({
   head: () => ({
     meta: [{ title: "Shared - File Uploader" }],
   }),
-  loader: async () => {
-    return getSharedLoaderData();
+  beforeLoad: ({ context }) => {
+    if (!context.user || !context.session) {
+      throw new Error("Authentication required.");
+    }
+    return { user: context.user, session: context.session };
   },
-  component: SharedPage,
+  loader: ({ context }) => getSharedLinks({ data: { userId: context.user.id } }),
+  component: RouteComponent,
 });
 
-function SharedPage() {
-  const { user } = RootRoute.useRouteContext();
+function RouteComponent() {
+  const router = useRouter();
+  const links = Route.useLoaderData();
   const [deletingShareIds, setDeletingShareIds] = useState<Set<string>>(new Set());
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const copiedResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const initialData = Route.useLoaderData();
-  const query = useQuery({
-    ...sharedLoaderQueryOptions,
-    initialData,
-  });
-
-  const data = query.data ?? initialData;
-  const storageUsed = useMemo(() => data.storageUsed, [data]);
-  const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
-  const links = data.links;
-  const sidebarFolders = data.sidebarFolders;
 
   async function deleteShareLink(shareId: string) {
     if (deletingShareIds.has(shareId)) {
@@ -146,7 +100,7 @@ function SharedPage() {
           throw new Error(json?.error?.message ?? "Could not delete share link.");
         }
 
-        await query.refetch();
+        await router.invalidate();
       })();
 
       toast.promise(deletePromise, {
@@ -179,26 +133,8 @@ function SharedPage() {
   }
 
   return (
-    <DriveShell
-      user={user}
-      storageUsed={storageUsed}
-      storagePct={storagePct}
-      nestedFolders={sidebarFolders}
-      title="Shared"
-    >
-      {query.isPending && !query.data ? (
-        <DriveEmptyState icon={Share2} title="Loading shared links..." description="" />
-      ) : query.isError ? (
-        <ErrorPage
-          compact
-          title="Could not load shared links"
-          description={
-            query.error instanceof Error
-              ? query.error.message
-              : "Something went wrong while loading shared links."
-          }
-        />
-      ) : links.length === 0 ? (
+    <DriveShell title="Shared">
+      {links.length === 0 ? (
         <DriveEmptyState
           icon={Share2}
           title="No shared links yet"
