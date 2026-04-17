@@ -139,6 +139,15 @@ async function getTotalBytes(client: PrismaClient, userId: string, excludeFileId
   return aggregate._sum.bytes ?? 0;
 }
 
+export async function getUsedBytes(userId: string) {
+  const storage = await prisma.file.aggregate({
+    where: { userId },
+    _sum: { bytes: true },
+  });
+
+  return storage._sum.bytes ?? 0;
+}
+
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {

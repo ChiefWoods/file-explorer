@@ -2,7 +2,7 @@ import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
 import { errorResponse, HttpError } from "#/lib/api/http";
 import { getOptionalAuthSession } from "#/lib/api/session";
-import { prisma } from "#/lib/db";
+import { getUsedBytes, prisma } from "#/lib/db";
 import {
   ensureUserRootFolder,
   getDriveSidebarFolders,
@@ -61,7 +61,7 @@ async function handleGetDriveListing(request: Request): Promise<Response> {
       }
     }
 
-    const [breadcrumbs, sidebarFolders, folders, files, storage] = await Promise.all([
+    const [breadcrumbs, sidebarFolders, folders, files, usedBytes] = await Promise.all([
       getFolderBreadcrumbs(folder.userId, folder.id),
       getDriveSidebarFolders(folder.userId),
       prisma.folder.findMany({
@@ -90,10 +90,7 @@ async function handleGetDriveListing(request: Request): Promise<Response> {
           mimeType: true,
         },
       }),
-      prisma.file.aggregate({
-        where: { userId: folder.userId },
-        _sum: { bytes: true },
-      }),
+      getUsedBytes(folder.userId),
     ]);
 
     const payload: DriveFolderListingResponse = {
@@ -114,7 +111,7 @@ async function handleGetDriveListing(request: Request): Promise<Response> {
         bytes: file.bytes,
         mimeType: file.mimeType,
       })),
-      storageUsedBytes: storage._sum.bytes ?? 0,
+      storageUsedBytes: usedBytes,
     };
 
     return Response.json(payload);

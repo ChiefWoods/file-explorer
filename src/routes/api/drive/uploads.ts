@@ -5,7 +5,7 @@ import {
   destroyCloudinaryAsset,
   uploadBufferToCloudinary,
 } from "#/lib/cloudinary";
-import { prisma } from "#/lib/db";
+import { getUsedBytes, prisma } from "#/lib/db";
 import { USER_STORAGE_LIMIT_BYTES, USER_STORAGE_LIMIT_GB } from "#/lib/drive-constants";
 import { ensureUserRootFolder, requireOwnedFolder } from "#/lib/drive-repository";
 import { assertValidUploadFile, inferCloudinaryResourceType } from "#/lib/upload-policy";
@@ -60,11 +60,7 @@ async function handleUploadFiles(request: Request): Promise<Response> {
     }
 
     const incomingBytes = files.reduce((total, file) => total + file.size, 0);
-    const storage = await prisma.file.aggregate({
-      where: { userId: session.user.id },
-      _sum: { bytes: true },
-    });
-    const usedBytes = storage._sum.bytes ?? 0;
+    const usedBytes = await getUsedBytes(session.user.id);
     if (usedBytes + incomingBytes > USER_STORAGE_LIMIT_BYTES) {
       throw new HttpError(
         413,

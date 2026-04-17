@@ -1,7 +1,7 @@
 import { errorResponse, HttpError, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
 import { buildCloudinaryDownloadUrl } from "#/lib/cloudinary";
-import { prisma } from "#/lib/db";
+import { getUsedBytes, prisma } from "#/lib/db";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { getFolderBreadcrumbs, requireOwnedFolder } from "#/lib/drive-repository";
 import { isPrismaErrorCode } from "#/lib/prisma-errors";
@@ -99,12 +99,9 @@ async function handleListFolders(request: Request): Promise<Response> {
         })
       : Promise.resolve([]);
 
-    const storagePromise = prisma.file.aggregate({
-      where: { userId: session.user.id },
-      _sum: { bytes: true },
-    });
+    const storagePromise = getUsedBytes(session.user.id);
 
-    const [folders, files, storage] = await Promise.all([
+    const [folders, files, usedBytes] = await Promise.all([
       foldersPromise,
       filesPromise,
       storagePromise,
@@ -125,7 +122,7 @@ async function handleListFolders(request: Request): Promise<Response> {
         downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl, file.name),
       })),
       storage: {
-        usedBytes: storage._sum.bytes ?? 0,
+        usedBytes,
         totalBytes: USER_STORAGE_LIMIT_BYTES,
       },
     });

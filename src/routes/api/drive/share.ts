@@ -1,6 +1,6 @@
 import { errorResponse, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
-import { prisma } from "#/lib/db";
+import { getUsedBytes, prisma } from "#/lib/db";
 import { getFolderIdPath, requireOwnedFolder } from "#/lib/drive-repository";
 import { createShareLinkInputSchema, isShareExpired, resolveShareExpiry } from "#/lib/share-link";
 import { createFileRoute } from "@tanstack/react-router";
@@ -36,7 +36,7 @@ async function handleListShares(request: Request): Promise<Response> {
     }
 
     const includeExpired = search.includeExpired === "true";
-    const [links, storage] = await Promise.all([
+    const [links, useBytes] = await Promise.all([
       prisma.shareLink.findMany({
         where: {
           createdByUserId: session.user.id,
@@ -61,10 +61,7 @@ async function handleListShares(request: Request): Promise<Response> {
           },
         },
       }),
-      prisma.file.aggregate({
-        where: { userId: session.user.id },
-        _sum: { bytes: true },
-      }),
+      getUsedBytes(session.user.id),
     ]);
 
     const urlsByFolderId = new Map<string, string>();
@@ -78,7 +75,7 @@ async function handleListShares(request: Request): Promise<Response> {
     );
 
     return Response.json({
-      storageUsed: storage._sum.bytes ?? 0,
+      storageUsed: useBytes,
       links: links.map((link) => ({
         id: link.id,
         folderId: link.folderId,
