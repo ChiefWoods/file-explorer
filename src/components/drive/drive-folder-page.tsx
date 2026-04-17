@@ -293,7 +293,6 @@ export function DriveFolderPage({
     await queryClient.invalidateQueries({
       queryKey: queryKeys.drive.listing(currentFolderId),
     });
-    await listingQuery.refetch();
   }
 
   const uploadForm = useForm({
