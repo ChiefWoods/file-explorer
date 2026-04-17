@@ -22,18 +22,12 @@ export const authRequestMiddleware = createMiddleware({
     user: sessionResult?.user ?? null,
   };
 
-  if (pathname.startsWith("/api/")) {
-    return next({ context: authContext });
-  }
-
   if (pathname === "/") {
     throw redirect({
       to: authContext.session ? "/drive" : "/sign-in",
       replace: true,
     });
   }
-
-  const isDriveNested = pathname.startsWith("/drive/");
 
   if (PROTECTED_ROUTES.includes(pathname) && !authContext.session) {
     const target = safeInternalPath(`${pathname}${url.search}`, "/drive");
@@ -42,10 +36,6 @@ export const authRequestMiddleware = createMiddleware({
       search: { redirect: target },
       replace: true,
     });
-  }
-
-  if (isDriveNested && !authContext.session) {
-    return next({ context: authContext });
   }
 
   if (pathname === "/sign-in" && authContext.session) {
