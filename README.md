@@ -1,191 +1,118 @@
-Welcome to your new TanStack Start app!
+# File Explorer
 
-# Getting Started
+![Preview](preview.png)
 
-To run this application:
+File storage management tool for [The Odin Project](https://www.theodinproject.com/).
+
+[Source Repository](https://github.com/ChiefWoods/file-explorer)
+
+## Features
+
+- Create folders with different depths
+- Upload and store retrievable files
+- Share folder access with customizable expiration times 
+
+## Built With
+
+### Tech Stack
+
+- [![TanStack Start](https://img.shields.io/badge/TanStack-Start-383936?style=for-the-badge&logo=reactrouter)](https://tanstack.com/start/)
+- [![Prisma](https://img.shields.io/badge/Prisma-383936?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+- [![Shadcn](https://img.shields.io/badge/Shadcn-383936?style=for-the-badge&logo=shadcnui)](https://ui.shadcn.com/)
+- [![Vitest](https://img.shields.io/badge/Vitest-383936?style=for-the-badge&logo=vitest)](https://vitest.dev)
+- [![Docker](https://img.shields.io/badge/Docker-383936?style=for-the-badge&logo=docker)](https://www.docker.com/)
+
+## Getting Started
+
+### Prerequisites
+
+Update your Bun toolkit to the latest version.
+
+```bash
+bun upgrade
+```
+
+### Setup
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/ChiefWoods/file-explorer.git
+```
+
+2. Install all dependencies
 
 ```bash
 bun install
-bun --bun run dev
 ```
 
-# Building For Production
-
-To build this application for production:
+3. Create env file
 
 ```bash
-bun --bun run build
+cp .env.example .env.development
 ```
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+4. Start local Postgres (dev)
 
 ```bash
-bun --bun run test
+bun run docker:db:up
 ```
 
-## Styling
+5. Apply migrations
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `bun install @tailwindcss/vite tailwindcss -D`
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
+```bash
+bun run db:migrate
 ```
 
-Then anywhere in your JSX you can use it like so:
+6. Start development server
 
-```tsx
-<Link to="/about">About</Link>
+```bash
+bun run dev
 ```
 
-This will create a link that will navigate to the `/about` route.
+7. Build project
 
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "My App" },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-});
+```bash
+bun run build
 ```
 
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
+8. Preview build
 
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from "@tanstack/react-start";
-
-const getServerTime = createServerFn({
-  method: "GET",
-}).handler(async () => {
-  return new Date().toISOString();
-});
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState("");
-
-  useEffect(() => {
-    getServerTime().then(setTime);
-  }, []);
-
-  return <div>Server time: {time}</div>;
-}
+```bash
+bun run start
 ```
 
-## API Routes
+### Testing
 
-You can create API routes by using the `server` property in your route definitions:
+1. Create env file
 
-```tsx
-import { createFileRoute } from "@tanstack/react-router";
-import { json } from "@tanstack/react-start";
-
-export const Route = createFileRoute("/api/hello")({
-  server: {
-    handlers: {
-      GET: () => json({ message: "Hello, World!" }),
-    },
-  },
-});
+```bash
+cp .env.example .env.test
 ```
 
-## Data Fetching
+2. Start local Postgres (test)
 
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from "@tanstack/react-router";
-
-export const Route = createFileRoute("/people")({
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json();
-  },
-  component: PeopleComponent,
-});
-
-function PeopleComponent() {
-  const data = Route.useLoaderData();
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  );
-}
+```bash
+bun run docker:test-db:up
 ```
 
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
+3. Test project
 
-# Demo files
+```bash
+bun run test
+```
 
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
+## Issues
 
-# Learn More
+View the [open issues](https://github.com/ChiefWoods/file-explorer/issues) for a full list of proposed features and known bugs.
 
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+## Acknowledgements
 
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+### Resources
+
+- [Shields.io](https://shields.io/)
+- [Lucide](https://lucide.dev/)
+
+## Contact
+
+[chii.yuen@hotmail.com](mailto:chii.yuen@hotmail.com)
