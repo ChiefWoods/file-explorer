@@ -1,4 +1,4 @@
-import type { RouterAppContext } from "#/lib/router-app-context";
+import type { QueryClient } from "@tanstack/react-query";
 
 import { createQueryClient } from "#/lib/query-client";
 import { createRouter } from "@tanstack/react-router";
@@ -6,7 +6,9 @@ import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query
 
 import { routeTree } from "./routeTree.gen";
 
-export type { RouterAppContext };
+export interface RouterAppContext {
+  queryClient: QueryClient;
+}
 
 export function getRouter() {
   const queryClient = createQueryClient();

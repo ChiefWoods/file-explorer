@@ -26,9 +26,9 @@ import {
   useSidebar,
 } from "#/components/ui/sidebar";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
-import { formatBytes } from "#/lib/format-bytes";
 import { useSignOut } from "#/lib/hooks/use-sign-out";
 import { safeInternalPath } from "#/lib/nav-redirect";
+import { formatBytes } from "#/lib/utils";
 import { cn } from "#/lib/utils";
 import { Route as RootRoute } from "#/routes/__root";
 import { useLocation, useNavigate } from "@tanstack/react-router";
@@ -63,6 +63,22 @@ const DRIVE_SECTION_ITEMS: Array<{
   { key: "my-drive", label: "My Drive", icon: FolderOpen },
   { key: "shared", label: "Shared", icon: Share2 },
 ];
+
+function UserMetadata({ name, email }: { name: string; email: string }) {
+  return (
+    <>
+      <Avatar className="size-8 rounded-lg">
+        <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
+          <User className="size-4" />
+        </AvatarFallback>
+      </Avatar>
+      <p className="grid flex-1 text-left text-sm leading-tight">
+        <span className="truncate font-medium">{name}</span>
+        <span className="truncate text-xs">{email}</span>
+      </p>
+    </>
+  );
+}
 
 export function DriveSidebar({
   storageUsed,
@@ -250,15 +266,7 @@ export function DriveSidebar({
               ) : (
                 <DropdownMenu>
                   <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />} className="h-12">
-                    <Avatar className="size-8 rounded-lg">
-                      <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
-                        <User className="size-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">{userName}</span>
-                      <span className="truncate text-xs">{userEmail}</span>
-                    </p>
+                    <UserMetadata name={userName} email={userEmail} />
                     <ChevronsUpDown className="ml-auto size-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -268,15 +276,7 @@ export function DriveSidebar({
                     sideOffset={4}
                   >
                     <DropdownMenuGroup className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
-                      <Avatar className="size-8 rounded-lg">
-                        <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
-                          <User className="size-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <p className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-medium">{userName}</span>
-                        <span className="truncate text-xs">{userEmail}</span>
-                      </p>
+                      <UserMetadata name={userName} email={userEmail} />
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>

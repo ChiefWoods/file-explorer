@@ -15,11 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
-import { formatBytes } from "#/lib/format-bytes";
+import { formatBytes } from "#/lib/utils";
 import { cn } from "#/lib/utils";
 import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
 
-export type DriveTableItem = DriveItemRecord;
+type DriveTableItem = DriveItemRecord;
 
 type DriveItemsTableProps = DriveItemsViewProps;
 

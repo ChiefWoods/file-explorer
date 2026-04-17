@@ -4,8 +4,8 @@ import { buildCloudinaryDownloadUrl } from "#/lib/cloudinary";
 import { getUsedBytes, prisma } from "#/lib/db";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { getFolderBreadcrumbs, requireOwnedFolder } from "#/lib/drive-repository";
-import { isPrismaErrorCode } from "#/lib/prisma-errors";
 import { folderNameSchema } from "#/lib/upload-policy";
+import { isPrismaErrorCode } from "#/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 

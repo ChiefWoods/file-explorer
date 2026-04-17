@@ -20,3 +20,23 @@ export function getFolderIdFromSplat(params: Record<string, unknown>): string {
   }
   return segments[segments.length - 1];
 }
+
+export function formatBytes(bytes?: number, options?: { empty?: string }): string {
+  if (typeof bytes !== "number") {
+    return options?.empty ?? "0 B";
+  }
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+}
+
+export function isPrismaErrorCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string" &&
+    (error as { code: string }).code === code
+  );
+}

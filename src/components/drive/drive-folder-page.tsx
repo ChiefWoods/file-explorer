@@ -250,9 +250,7 @@ export function DriveFolderPage({
       document.title = "My Drive - File Uploader";
       return;
     }
-    document.title = activeFolderName
-      ? `${activeFolderName} - File Uploader`
-      : "My Drive - File Uploader";
+    document.title = `${activeFolderName ?? "My Drive"} - File Uploader`;
   }, [activeFolderName, pathSegments.length]);
 
   const title = (
