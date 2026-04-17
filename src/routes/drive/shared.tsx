@@ -13,14 +13,13 @@ import {
   TableRow,
 } from "#/components/ui/table";
 import { auth } from "#/lib/auth";
-import { authClient } from "#/lib/auth-client";
 import { prisma } from "#/lib/db";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { getDriveSidebarFolders, getFolderIdPath } from "#/lib/drive-repository";
 import { queryKeys } from "#/lib/query-keys";
 import { Route as RootRoute } from "#/routes/__root";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { Copy, CopyCheck, Share2, Trash2 } from "lucide-react";
@@ -112,9 +111,7 @@ export const Route = createFileRoute("/drive/shared")({
 });
 
 function SharedPage() {
-  const router = useRouter();
   const { user } = RootRoute.useRouteContext();
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const [deletingShareIds, setDeletingShareIds] = useState<Set<string>>(new Set());
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const copiedResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,28 +126,6 @@ function SharedPage() {
   const storagePct = Math.min(100, (storageUsed / USER_STORAGE_LIMIT_BYTES) * 100);
   const links = data.links;
   const sidebarFolders = data.sidebarFolders;
-
-  async function signOut() {
-    if (isSigningOut) {
-      return;
-    }
-
-    setIsSigningOut(true);
-    try {
-      const { error } = await authClient.signOut();
-      if (error) {
-        toast.error(error.message ?? "Could not sign out.");
-        return;
-      }
-
-      await router.invalidate();
-      await router.navigate({ to: "/sign-in", search: { redirect: undefined }, replace: true });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign out.");
-    } finally {
-      setIsSigningOut(false);
-    }
-  }
 
   async function deleteShareLink(shareId: string) {
     if (deletingShareIds.has(shareId)) {
@@ -208,8 +183,6 @@ function SharedPage() {
       user={user}
       storageUsed={storageUsed}
       storagePct={storagePct}
-      isSigningOut={isSigningOut}
-      onSignOut={() => void signOut()}
       nestedFolders={sidebarFolders}
       title="Shared"
     >

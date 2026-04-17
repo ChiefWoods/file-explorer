@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { authClient } from "#/lib/auth-client";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { fetchDriveListing } from "#/lib/drive-listing";
 import { persistDriveViewMode, readDriveViewModeFromStorage } from "#/lib/drive-view-mode";
@@ -166,7 +165,6 @@ export function DriveFolderPage({
 }: DriveFolderPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
@@ -355,28 +353,6 @@ export function DriveFolderPage({
   useEffect(() => {
     uploadForm.reset({ files: [] });
   }, [resolvedFolderId]);
-
-  async function signOut() {
-    if (isSigningOut) {
-      return;
-    }
-
-    setIsSigningOut(true);
-    try {
-      const { error } = await authClient.signOut();
-      if (error) {
-        toast.error(error.message ?? "Could not sign out.");
-        return;
-      }
-
-      await router.invalidate();
-      await router.navigate({ to: "/sign-in", search: { redirect: undefined }, replace: true });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign out.");
-    } finally {
-      setIsSigningOut(false);
-    }
-  }
 
   function toggleSelect(itemId: string) {
     setSelectedIds((prev) => {
@@ -1087,8 +1063,6 @@ export function DriveFolderPage({
       user={user}
       storageUsed={storageUsed}
       storagePct={storagePct}
-      isSigningOut={isSigningOut}
-      onSignOut={() => void signOut()}
       currentFolderId={resolvedFolderId}
       nestedFolders={sidebarNestedFolders}
       title={title}

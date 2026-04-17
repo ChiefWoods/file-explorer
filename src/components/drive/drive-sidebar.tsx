@@ -28,6 +28,7 @@ import {
 } from "#/components/ui/sidebar";
 import { USER_STORAGE_LIMIT_BYTES } from "#/lib/drive-constants";
 import { formatBytes } from "#/lib/format-bytes";
+import { useSignOut } from "#/lib/hooks/use-sign-out";
 import { safeInternalPath } from "#/lib/nav-redirect";
 import { cn } from "#/lib/utils";
 import { Route as RootRoute } from "#/routes/__root";
@@ -55,8 +56,6 @@ type DriveSidebarProps = {
   user: SidebarUser | null;
   storageUsed: number;
   storagePct: number;
-  isSigningOut: boolean;
-  onSignOut: () => void;
   currentFolderId?: string;
   nestedFolders?: DriveSidebarFolderNode[];
 };
@@ -74,14 +73,13 @@ export function DriveSidebar({
   user,
   storageUsed,
   storagePct,
-  isSigningOut,
-  onSignOut,
   currentFolderId,
   nestedFolders = [],
 }: DriveSidebarProps) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isSigningOut, signOut } = useSignOut();
   const { session } = RootRoute.useRouteContext();
   const isAuthenticated = Boolean(session);
   const isPublicSharedView = !isAuthenticated && location.pathname.startsWith("/drive/");
@@ -271,7 +269,7 @@ export function DriveSidebar({
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={onSignOut} disabled={isSigningOut}>
+                      <DropdownMenuItem onClick={signOut} disabled={isSigningOut}>
                         <LogOut />
                         {isSigningOut ? "Logging out…" : "Log out"}
                       </DropdownMenuItem>

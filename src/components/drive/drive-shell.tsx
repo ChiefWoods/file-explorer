@@ -12,8 +12,6 @@ type DriveShellProps = {
   user: SidebarUser | null;
   storageUsed: number;
   storagePct: number;
-  isSigningOut: boolean;
-  onSignOut: () => void;
   currentFolderId?: string;
   nestedFolders?: DriveSidebarFolderNode[];
   title: React.ReactNode;
@@ -26,8 +24,6 @@ export function DriveShell({
   user,
   storageUsed,
   storagePct,
-  isSigningOut,
-  onSignOut,
   currentFolderId,
   nestedFolders,
   title,
@@ -43,8 +39,6 @@ export function DriveShell({
             user={user}
             storageUsed={storageUsed}
             storagePct={storagePct}
-            isSigningOut={isSigningOut}
-            onSignOut={onSignOut}
             currentFolderId={currentFolderId}
             nestedFolders={nestedFolders}
           />
