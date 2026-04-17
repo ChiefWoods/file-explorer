@@ -2,7 +2,7 @@ import { DriveSidebar } from "#/components/drive/drive-sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
 import { loadDriveListing } from "#/lib/drive-listing.server-fns";
 import { getFolderIdFromSplat } from "#/lib/utils";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/drive/_layout")({
   loader: async ({ params }) => {
@@ -15,7 +15,10 @@ export const Route = createFileRoute("/drive/_layout")({
 });
 
 function RouteComponent() {
-  const { sidebarFolders, storageUsedBytes, storagePct, folderId } = Route.useLoaderData();
+  const { sidebarFolders, storageUsedBytes, storagePct } = Route.useLoaderData();
+  const location = useLocation();
+  const splat = location.pathname.replace(/^\/drive\/?/, "");
+  const currentFolderId = getFolderIdFromSplat({ _splat: splat });
 
   return (
     <SidebarProvider>
@@ -24,7 +27,7 @@ function RouteComponent() {
           <DriveSidebar
             storageUsed={storageUsedBytes}
             storagePct={storagePct}
-            currentFolderId={folderId}
+            currentFolderId={currentFolderId}
             nestedFolders={sidebarFolders}
           />
           <Outlet />
