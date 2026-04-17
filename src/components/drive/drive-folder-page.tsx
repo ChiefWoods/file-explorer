@@ -141,6 +141,10 @@ function DriveItemIcon({ item }: { item: DriveItem }) {
   return <FileText className="size-4 text-primary" aria-hidden />;
 }
 
+function isFolderItem(item: DriveItem): item is DriveItem & { type: "folder" } {
+  return item.type === "folder";
+}
+
 export function DriveFolderPage({
   user,
   initialData,
@@ -422,18 +426,17 @@ export function DriveFolderPage({
   }
 
   async function shareItem(item: DriveItem) {
-    if (item.type !== "folder") {
+    if (!isFolderItem(item)) {
       return;
     }
 
-    const folderItem = item as DriveItem & { type: "folder" };
-    setShareTargetFolder(folderItem);
+    setShareTargetFolder(item);
     setShareDuration("7d");
     setGeneratedShareUrl("");
     setExistingShareReminder(null);
     setShareDialogOpen(true);
 
-    const response = await fetch(`/api/drive/share?folderId=${folderItem.id}`);
+    const response = await fetch(`/api/drive/share?folderId=${item.id}`);
     const json = (await response.json().catch(() => null)) as {
       links?: Array<{ url?: string; expiresAt?: string | null }>;
       error?: { message?: string };
