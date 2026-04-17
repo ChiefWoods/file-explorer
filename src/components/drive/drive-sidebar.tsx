@@ -86,7 +86,7 @@ export function DriveSidebar({
   const isAuthenticated = Boolean(session);
   const isPublicSharedView = !isAuthenticated && location.pathname.startsWith("/drive/");
   const isDriveRootRoute = location.pathname === "/drive" || location.pathname === "/drive/";
-  const activeSection: DriveSection = location.pathname.startsWith("/shared")
+  const activeSection: DriveSection = location.pathname.startsWith("/drive/shared")
     ? "shared"
     : "my-drive";
   const { isMyDriveOpen, setIsMyDriveOpen } = useDriveSidebarState();
@@ -180,7 +180,7 @@ export function DriveSidebar({
                       type="button"
                       isActive={isActive}
                       onClick={() =>
-                        void navigate({ to: item.key === "my-drive" ? "/drive" : "/shared" })
+                        void navigate({ to: item.key === "my-drive" ? "/drive" : "/drive/shared" })
                       }
                     >
                       <Icon

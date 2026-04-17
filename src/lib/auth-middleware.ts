@@ -10,7 +10,7 @@ type AuthContext = {
   user: SessionResult["user"] | null;
 };
 
-const PROTECTED_ROUTES = ["/drive", "/shared"];
+const PROTECTED_ROUTES = ["/drive", "/drive/shared"];
 
 export const authRequestMiddleware = createMiddleware({
   type: "request",

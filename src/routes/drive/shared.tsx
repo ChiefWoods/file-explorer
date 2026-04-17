@@ -101,7 +101,7 @@ const sharedLoaderQueryOptions = queryOptions({
   staleTime: 30_000,
 });
 
-export const Route = createFileRoute("/shared")({
+export const Route = createFileRoute("/drive/shared")({
   head: () => ({
     meta: [{ title: "Shared - File Uploader" }],
   }),
