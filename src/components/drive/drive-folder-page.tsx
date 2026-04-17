@@ -164,6 +164,7 @@ export function DriveFolderPage({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
+  const [deletingItemIds, setDeletingItemIds] = useState<Set<string>>(new Set());
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -549,24 +550,37 @@ export function DriveFolderPage({
   }
 
   async function handleDeleteItem(item: DriveItem) {
-    const deletePromise = (async () => {
-      await deleteDriveItem(item);
-      await refreshDriveListing();
-      setSelectedIds((prev) => {
+    if (deletingItemIds.has(item.id)) {
+      return;
+    }
+
+    setDeletingItemIds((prev) => new Set(prev).add(item.id));
+    try {
+      const deletePromise = (async () => {
+        await deleteDriveItem(item);
+        await refreshDriveListing();
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(item.id);
+          return next;
+        });
+        return item.type;
+      })();
+
+      toast.promise(deletePromise, {
+        loading: `Deleting ${item.type}...`,
+        success: (itemType) => `${itemType === "file" ? "File" : "Folder"} deleted.`,
+        error: (error) => (error instanceof Error ? error.message : "Could not delete item."),
+      });
+
+      await deletePromise;
+    } finally {
+      setDeletingItemIds((prev) => {
         const next = new Set(prev);
         next.delete(item.id);
         return next;
       });
-      return item.type;
-    })();
-
-    toast.promise(deletePromise, {
-      loading: `Deleting ${item.type}...`,
-      success: (itemType) => `${itemType === "file" ? "File" : "Folder"} deleted.`,
-      error: (error) => (error instanceof Error ? error.message : "Could not delete item."),
-    });
-
-    await deletePromise;
+    }
   }
 
   function handleRenameItem(item: DriveItem) {
@@ -808,6 +822,7 @@ export function DriveFolderPage({
       onDeleteItem={(item) => {
         void handleDeleteItem(item as DriveItem);
       }}
+      deletingItemIds={deletingItemIds}
       renderItemIcon={(item) => <DriveItemIcon item={item as DriveItem} />}
     />
   );

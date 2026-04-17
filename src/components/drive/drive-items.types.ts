@@ -16,5 +16,6 @@ export type DriveItemsViewProps = {
   onDownloadItem: (item: DriveItemRecord) => void;
   onShareItem: (item: DriveItemRecord) => void;
   onDeleteItem: (item: DriveItemRecord) => void;
+  deletingItemIds: Set<string>;
   renderItemIcon: (item: DriveItemRecord) => React.ReactNode;
 };

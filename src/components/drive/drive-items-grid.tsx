@@ -22,6 +22,7 @@ export function DriveItemsGrid({
   onDownloadItem,
   onShareItem,
   onDeleteItem,
+  deletingItemIds,
   renderItemIcon,
 }: DriveItemsGridProps) {
   return (
@@ -107,13 +108,14 @@ export function DriveItemsGrid({
                   {isAuthenticated && (
                     <DropdownMenuItem
                       variant="destructive"
+                      disabled={deletingItemIds.has(item.id)}
                       onClick={(event) => {
                         event.stopPropagation();
                         onDeleteItem(item);
                       }}
                     >
                       <Trash2 />
-                      Delete
+                      {deletingItemIds.has(item.id) ? "Deleting..." : "Delete"}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>

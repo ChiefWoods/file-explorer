@@ -33,6 +33,7 @@ export function DriveItemsTable({
   onDownloadItem,
   onShareItem,
   onDeleteItem,
+  deletingItemIds,
   renderItemIcon,
 }: DriveItemsTableProps) {
   return (
@@ -137,13 +138,14 @@ export function DriveItemsTable({
                       {isAuthenticated && (
                         <DropdownMenuItem
                           variant="destructive"
+                          disabled={deletingItemIds.has(item.id)}
                           onClick={(event) => {
                             event.stopPropagation();
                             onDeleteItem(item);
                           }}
                         >
                           <Trash2 />
-                          Delete
+                          {deletingItemIds.has(item.id) ? "Deleting..." : "Delete"}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
