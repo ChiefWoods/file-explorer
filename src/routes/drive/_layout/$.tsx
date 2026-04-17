@@ -1,6 +1,6 @@
 import { DriveFolderPage } from "#/components/drive/drive-folder-page";
 import { ErrorPage } from "#/components/shared/error-page";
-import { getErrorCode, getPathSegmentsFromParams } from "#/lib/utils";
+import { getErrorCode, getFolderIdFromSplat, getPathSegmentsFromParams } from "#/lib/utils";
 import { Route as RootRoute } from "#/routes/__root";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -21,7 +21,7 @@ function RouteComponent() {
   const listing = DriveLayoutRoute.useLoaderData();
   const params = Route.useParams();
   const pathSegments = getPathSegmentsFromParams(params);
-  const currentFolderId = pathSegments[pathSegments.length - 1] ?? "root";
+  const currentFolderId = getFolderIdFromSplat(params);
 
   return (
     <DriveFolderPage
