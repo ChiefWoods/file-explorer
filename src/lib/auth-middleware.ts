@@ -10,6 +10,8 @@ type AuthContext = {
   user: SessionResult["user"] | null;
 };
 
+const PROTECTED_ROUTES = ["/drive", "/shared"];
+
 export const authRequestMiddleware = createMiddleware({
   type: "request",
 }).server(async ({ next, pathname, request }) => {
@@ -31,11 +33,9 @@ export const authRequestMiddleware = createMiddleware({
     });
   }
 
-  const isDriveRoot = pathname === "/drive" || pathname === "/drive/";
   const isDriveNested = pathname.startsWith("/drive/");
-  const isSharedRoute = pathname.startsWith("/shared");
 
-  if ((isDriveRoot || isSharedRoute) && !authContext.session) {
+  if (PROTECTED_ROUTES.includes(pathname) && !authContext.session) {
     const target = safeInternalPath(`${pathname}${url.search}`, "/drive");
     throw redirect({
       to: "/sign-in",

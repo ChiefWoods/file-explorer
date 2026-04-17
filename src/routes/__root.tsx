@@ -2,9 +2,8 @@ import { DriveSidebarStateProvider } from "#/components/drive/drive-sidebar-stat
 import { ErrorPage } from "#/components/shared/error-page";
 import { authRequestMiddleware } from "#/lib/auth-middleware";
 import { getSession } from "#/lib/auth.functions";
-import { safeInternalPath } from "#/lib/nav-redirect";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { HeadContent, Scripts, createRootRoute, redirect } from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { useEffect } from "react";
 import { Toaster } from "sonner";
@@ -17,7 +16,7 @@ export const Route = createRootRoute({
   server: {
     middleware: [authRequestMiddleware],
   },
-  beforeLoad: async ({ location, serverContext }) => {
+  beforeLoad: async ({ serverContext }) => {
     if (serverContext) {
       return {
         user: serverContext.user ?? null,
@@ -26,21 +25,6 @@ export const Route = createRootRoute({
     }
 
     const sessionResult = await getSession();
-    const isDriveRoot = location.pathname === "/drive" || location.pathname === "/drive/";
-    const isSharedRoute = location.pathname.startsWith("/shared");
-    const isProtectedRoute = isDriveRoot || isSharedRoute;
-
-    if (location.pathname === "/") {
-      throw redirect({ to: sessionResult?.session ? "/drive" : "/sign-in" });
-    }
-
-    if (isProtectedRoute && !sessionResult?.session) {
-      const href = `${location.pathname}${location.searchStr}`;
-      throw redirect({
-        to: "/sign-in",
-        search: { redirect: safeInternalPath(href, "/drive") },
-      });
-    }
 
     return {
       user: sessionResult?.user ?? null,
