@@ -21,6 +21,30 @@ export function getFolderIdFromSplat(params: Record<string, unknown>): string {
   return segments[segments.length - 1];
 }
 
+const SHORT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+};
+
+const SHORT_DATETIME_FORMAT: Intl.DateTimeFormatOptions = {
+  ...SHORT_DATE_FORMAT,
+  hour: "numeric",
+  minute: "2-digit",
+};
+
+export function formatShortDate(dateString: string): string {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString(undefined, SHORT_DATE_FORMAT);
+}
+
+export function formatShortDateTime(dateString: string): string {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString(undefined, SHORT_DATETIME_FORMAT);
+}
+
 export function formatBytes(bytes?: number, options?: { empty?: string }): string {
   if (typeof bytes !== "number") {
     return options?.empty ?? "0 B";

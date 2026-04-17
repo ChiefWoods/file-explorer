@@ -11,6 +11,7 @@ import {
 } from "#/components/ui/table";
 import { prisma } from "#/lib/db";
 import { getFolderIdPath } from "#/lib/drive-repository";
+import { formatShortDate } from "#/lib/utils";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Copy, CopyCheck, Share2, Trash2 } from "lucide-react";
@@ -171,20 +172,10 @@ function RouteComponent() {
                     {link.folderName}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
-                    {new Date(link.createdAt).toLocaleDateString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {formatShortDate(link.createdAt)}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
-                    {link.expiresAt
-                      ? new Date(link.expiresAt).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "Never"}
+                    {link.expiresAt ? formatShortDate(link.expiresAt) : "Never"}
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     <p className="truncate text-sm text-(--sea-ink-soft)">{link.url}</p>

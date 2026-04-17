@@ -40,6 +40,7 @@ import { queryKeys } from "#/lib/query-keys";
 import { uploadFilesFormSchema } from "#/lib/schemas/drive-forms";
 import { SHARE_DURATION_PRESETS, type ShareDurationPreset } from "#/lib/share-duration";
 import { ALLOWED_UPLOAD_MIME_TYPES } from "#/lib/upload-policy";
+import { formatShortDate, formatShortDateTime } from "#/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
@@ -100,24 +101,9 @@ type DriveFolderPageProps = {
   pathSegments: string[];
 };
 
-function formatModifiedAt(dateString: string): string {
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-}
-
 function formatDateInputLabel(date: Date | undefined, placeholder: string): string {
-  if (!date) {
-    return placeholder;
-  }
-
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  if (!date) return placeholder;
+  return formatShortDate(date.toISOString());
 }
 
 function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
@@ -125,7 +111,7 @@ function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
     id: folder.id,
     type: "folder",
     name: folder.name,
-    modified: formatModifiedAt(folder.modifiedAt),
+    modified: formatShortDate(folder.modifiedAt),
     modifiedAtMs: new Date(folder.modifiedAt).getTime(),
   }));
 
@@ -133,7 +119,7 @@ function mapListingToItems(listing: DriveFolderListingResponse): DriveItem[] {
     id: file.id,
     type: "file",
     name: file.name,
-    modified: formatModifiedAt(file.modifiedAt),
+    modified: formatShortDate(file.modifiedAt),
     modifiedAtMs: new Date(file.modifiedAt).getTime(),
     bytes: file.bytes,
     mimeType: file.mimeType,
@@ -431,18 +417,8 @@ export function DriveFolderPage({
   }
 
   function formatExactExpiry(expiresAtRaw: string): string {
-    const expiresAt = new Date(expiresAtRaw);
-    if (Number.isNaN(expiresAt.getTime())) {
-      return "an unknown date/time";
-    }
-
-    return expiresAt.toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    const result = formatShortDateTime(expiresAtRaw);
+    return result === "—" ? "an unknown date/time" : result;
   }
 
   async function shareItem(item: DriveItem) {
