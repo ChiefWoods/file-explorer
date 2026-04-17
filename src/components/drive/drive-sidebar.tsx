@@ -7,7 +7,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { Progress, ProgressIndicator } from "#/components/ui/progress";
@@ -275,10 +274,6 @@ export function DriveSidebar({
                     align="end"
                     sideOffset={4}
                   >
-                    <DropdownMenuGroup className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
-                      <UserMetadata name={userName} email={userEmail} />
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
                     <DropdownMenuGroup>
                       <DropdownMenuItem onClick={signOut} disabled={isSigningOut}>
                         <LogOut />
