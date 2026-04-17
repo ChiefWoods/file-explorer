@@ -59,7 +59,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { Fragment, useEffect, useState, type FormEvent } from "react";
+import { Fragment, useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 type DriveItem = DriveItemRecord & { mimeType?: string; modifiedAtMs: number };
@@ -760,7 +760,10 @@ export function DriveFolderPage({
     return now.getTime() - item.modifiedAtMs <= lookbackMs;
   }
 
-  const filteredItems = items.filter(matchesTypeFilter).filter(matchesAddedFilter);
+  const filteredItems = useMemo(
+    () => items.filter(matchesTypeFilter).filter(matchesAddedFilter),
+    [items, typeFilter, addedFilter, customAddedAfter, customAddedBefore],
+  );
   const hasActiveAddedFilter =
     addedFilter !== null &&
     (addedFilter !== "custom-range" || !!customAddedAfter || !!customAddedBefore);
