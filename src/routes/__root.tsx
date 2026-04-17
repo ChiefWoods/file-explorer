@@ -1,6 +1,7 @@
 import { ErrorPage } from "#/components/shared/error-page";
 import { authRequestMiddleware } from "#/lib/auth-middleware";
 import { getSession } from "#/lib/auth.functions";
+import { getErrorCode } from "#/lib/utils";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
@@ -103,22 +104,6 @@ function isAbortLikeError(error: unknown): boolean {
     "message" in error && typeof error.message === "string" ? error.message.toLowerCase() : "";
 
   return name === "AbortError" || message.includes("abort") || message.includes("cancel");
-}
-
-function getErrorCode(error: unknown): number {
-  if (typeof error !== "object" || error === null) {
-    return 404;
-  }
-
-  if ("status" in error && typeof error.status === "number") {
-    return error.status;
-  }
-
-  if ("statusCode" in error && typeof error.statusCode === "number") {
-    return error.statusCode;
-  }
-
-  return 404;
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {

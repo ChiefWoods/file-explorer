@@ -40,3 +40,19 @@ export function isPrismaErrorCode(error: unknown, code: string): boolean {
     (error as { code: string }).code === code
   );
 }
+
+export function getErrorCode(error: unknown): number {
+  if (typeof error !== "object" || error === null) {
+    return 404;
+  }
+
+  if ("status" in error && typeof error.status === "number") {
+    return error.status;
+  }
+
+  if ("statusCode" in error && typeof error.statusCode === "number") {
+    return error.statusCode;
+  }
+
+  return 404;
+}
