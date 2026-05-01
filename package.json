@@ -90,6 +90,7 @@
     "oxfmt": "^0.42.0",
     "oxlint": "^1.57.0",
     "prisma": "^7.5.0",
+    "react-doctor": "^0.0.47",
     "react-grab": "^0.1.32",
     "react-scan": "^0.5.4",
     "typescript": "^5.7.2",
