@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { downloadMultipleFiles } from "#/lib/drive-download";
+import { downloadMultipleFiles, type DriveDownloadFile } from "#/lib/drive-download";
 import { fetchDriveListing } from "#/lib/drive-listing";
 import { persistDriveViewMode, readDriveViewModeFromStorage } from "#/lib/drive-view-mode";
 import { formatFieldErrors } from "#/lib/field-errors";
@@ -57,6 +57,7 @@ import {
   List,
   Calendar as CalendarIcon,
   ChevronRight,
+  Download,
   Trash2,
   Upload,
   X,
@@ -155,12 +156,14 @@ export function DriveFolderPage({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
+  const [isDownloadingSelected, setIsDownloadingSelected] = useState(false);
   const [deletingItemIds, setDeletingItemIds] = useState<Set<string>>(new Set());
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [canDownloadSelected, setCanDownloadSelected] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "grid">(() => {
     if (typeof window !== "undefined") {
       return readDriveViewModeFromStorage();
@@ -197,7 +200,7 @@ export function DriveFolderPage({
     staleTime: 30_000,
   });
   const listing = listingQuery.data ?? initialData;
-  const items = listing ? mapListingToItems(listing) : [];
+  const items = useMemo(() => (listing ? mapListingToItems(listing) : []), [listing]);
   const resolvedFolderId = listing?.folderId ?? currentFolderId;
 
   useEffect(() => {
@@ -225,6 +228,50 @@ export function DriveFolderPage({
   useEffect(() => {
     setSelectedIds(new Set());
   }, [typeFilter, addedFilter, customAddedAfter, customAddedBefore]);
+
+  useEffect(() => {
+    if (selectedIds.size === 0) {
+      setCanDownloadSelected(false);
+      return;
+    }
+
+    const selectedItems = items.filter((item) => selectedIds.has(item.id));
+    if (selectedItems.length === 0) {
+      setCanDownloadSelected(false);
+      return;
+    }
+
+    if (selectedItems.some((item) => item.type === "file")) {
+      setCanDownloadSelected(true);
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkDownloadableSelection = async () => {
+      try {
+        const fileGroups = await Promise.all(
+          selectedItems.map((selectedItem) => getDownloadFilesForItem(selectedItem)),
+        );
+        if (cancelled) {
+          return;
+        }
+        const totalFiles = fileGroups.reduce((sum, group) => sum + group.length, 0);
+        setCanDownloadSelected(totalFiles > 0);
+      } catch {
+        if (cancelled) {
+          return;
+        }
+        setCanDownloadSelected(false);
+      }
+    };
+
+    void checkDownloadableSelection();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items, selectedIds]);
 
   const breadcrumbs = listing?.breadcrumbs ?? [];
   const activeFolderName = breadcrumbs.at(-1)?.name ?? null;
@@ -403,6 +450,16 @@ export function DriveFolderPage({
   }
 
   async function downloadItem(item: DriveItem) {
+    const files = await getDownloadFilesForItem(item);
+    if (files.length === 0) {
+      toast.error("This folder is empty.");
+      return;
+    }
+
+    await downloadMultipleFiles(files);
+  }
+
+  async function getDownloadFilesForItem(item: DriveItem): Promise<DriveDownloadFile[]> {
     if (item.type === "folder") {
       const response = await fetch(`/api/drive/folders/${item.id}`);
       const json = (await response.json().catch(() => null)) as {
@@ -414,13 +471,10 @@ export function DriveFolderPage({
         throw new Error(getApiErrorMessage(json, "Could not get folder files for download."));
       }
 
-      if (json.files.length === 0) {
-        toast.error("This folder is empty.");
-        return;
-      }
-
-      await downloadMultipleFiles(json.files);
-      return;
+      return json.files.map((file) => ({
+        ...file,
+        relativePath: file.relativePath ? `${item.name}/${file.relativePath}` : item.name,
+      }));
     }
 
     const response = await fetch(`/api/drive/files/${item.id}`);
@@ -433,7 +487,7 @@ export function DriveFolderPage({
       throw new Error(getApiErrorMessage(json, "Could not get download link."));
     }
 
-    await downloadMultipleFiles([{ name: item.name, downloadUrl: json.downloadUrl }]);
+    return [{ name: item.name, downloadUrl: json.downloadUrl }];
   }
 
   function formatExactExpiry(expiresAtRaw: string): string {
@@ -480,6 +534,43 @@ export function DriveFolderPage({
       setDidCopyShareLink(true);
     } catch {
       throw new Error("Unable to copy share link to clipboard.");
+    }
+  }
+
+  async function downloadSelected() {
+    if (selectedIds.size === 0 || isDownloadingSelected || !canDownloadSelected) {
+      return;
+    }
+
+    setIsDownloadingSelected(true);
+    try {
+      const downloadPromise = (async () => {
+        const selectedItems = items.filter((item) => selectedIds.has(item.id));
+        const fileGroups = await Promise.all(
+          selectedItems.map((selectedItem) => getDownloadFilesForItem(selectedItem)),
+        );
+        const files = fileGroups.flat();
+
+        if (files.length === 0) {
+          throw new Error("There are no files in the selected items.");
+        }
+
+        await downloadMultipleFiles(files);
+        return { fileCount: files.length };
+      })();
+
+      toast.promise(downloadPromise, {
+        loading: "Preparing download...",
+        success: ({ fileCount }) =>
+          fileCount === 1
+            ? "Download started for 1 file."
+            : `Download started for ${fileCount} files.`,
+        error: (error) => (error instanceof Error ? error.message : "Could not start download."),
+      });
+
+      await downloadPromise;
+    } finally {
+      setIsDownloadingSelected(false);
     }
   }
 
@@ -836,16 +927,30 @@ export function DriveFolderPage({
         </Button>
         <span>{selectedCount} selected</span>
       </div>
-      <Button
-        type="button"
-        variant="destructive"
-        size="sm"
-        onClick={() => void deleteSelected()}
-        disabled={isDeletingSelected || selectedCount === 0}
-      >
-        <Trash2 data-icon="inline-start" />
-        {isDeletingSelected ? "Deleting..." : "Delete"}
-      </Button>
+      <div className="flex items-center gap-2">
+        {canDownloadSelected && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void downloadSelected()}
+            disabled={isDownloadingSelected || isDeletingSelected || selectedCount === 0}
+          >
+            <Download data-icon="inline-start" />
+            {isDownloadingSelected ? "Preparing..." : "Download"}
+          </Button>
+        )}
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          onClick={() => void deleteSelected()}
+          disabled={isDeletingSelected || isDownloadingSelected || selectedCount === 0}
+        >
+          <Trash2 data-icon="inline-start" />
+          {isDeletingSelected ? "Deleting..." : "Delete"}
+        </Button>
+      </div>
     </div>
   );
 
