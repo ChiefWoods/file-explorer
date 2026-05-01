@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
+import { downloadMultipleFiles } from "#/lib/drive-download";
 import { fetchDriveListing } from "#/lib/drive-listing";
 import { persistDriveViewMode, readDriveViewModeFromStorage } from "#/lib/drive-view-mode";
 import { formatFieldErrors } from "#/lib/field-errors";
@@ -403,7 +404,22 @@ export function DriveFolderPage({
 
   async function downloadItem(item: DriveItem) {
     if (item.type === "folder") {
-      toast.error("Folder download is not available yet.");
+      const response = await fetch(`/api/drive/folders/${item.id}`);
+      const json = (await response.json().catch(() => null)) as {
+        files?: Array<{ name: string; relativePath?: string; downloadUrl: string }>;
+        error?: { message?: string };
+      } | null;
+
+      if (!response.ok || !json?.files) {
+        throw new Error(getApiErrorMessage(json, "Could not get folder files for download."));
+      }
+
+      if (json.files.length === 0) {
+        toast.error("This folder is empty.");
+        return;
+      }
+
+      await downloadMultipleFiles(json.files);
       return;
     }
 
@@ -417,7 +433,7 @@ export function DriveFolderPage({
       throw new Error(getApiErrorMessage(json, "Could not get download link."));
     }
 
-    window.location.assign(json.downloadUrl);
+    await downloadMultipleFiles([{ name: item.name, downloadUrl: json.downloadUrl }]);
   }
 
   function formatExactExpiry(expiresAtRaw: string): string {

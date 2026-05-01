@@ -105,6 +105,17 @@ export function DriveItemsGrid({
                       Share
                     </DropdownMenuItem>
                   )}
+                  {isAuthenticated && item.type === "folder" && (
+                    <DropdownMenuItem
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDownloadItem(item);
+                      }}
+                    >
+                      <Download />
+                      Download
+                    </DropdownMenuItem>
+                  )}
                   {isAuthenticated && (
                     <DropdownMenuItem
                       variant="destructive"

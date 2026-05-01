@@ -1,6 +1,10 @@
 import { errorResponse, HttpError, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
-import { destroyCloudinaryAsset, toCloudinaryResourceType } from "#/lib/cloudinary";
+import {
+  buildCloudinaryDownloadUrl,
+  destroyCloudinaryAsset,
+  toCloudinaryResourceType,
+} from "#/lib/cloudinary";
 import { prisma } from "#/lib/db";
 import {
   assertNoFolderCycle,
@@ -31,11 +35,65 @@ type HandlerArgs = { request: Request; params?: { folderId?: string } };
 export const Route = createFileRoute("/api/drive/folders/$folderId")({
   server: {
     handlers: {
+      GET: ({ request, params }: HandlerArgs) => handleGetFolderDownload(request, params?.folderId),
       PATCH: ({ request, params }: HandlerArgs) => handleUpdateFolder(request, params?.folderId),
       DELETE: ({ request, params }: HandlerArgs) => handleDeleteFolder(request, params?.folderId),
     },
   },
 });
+
+async function handleGetFolderDownload(
+  request: Request,
+  folderIdRaw: string | undefined,
+): Promise<Response> {
+  try {
+    const session = await requireAuthSession(request);
+    const folderId = parseFolderId(folderIdRaw);
+    await requireOwnedFolder(session.user.id, folderId);
+
+    const folderIds = await collectDescendantFolderIds(session.user.id, folderId);
+    const [folders, files] = await Promise.all([
+      prisma.folder.findMany({
+        where: {
+          userId: session.user.id,
+          id: { in: folderIds },
+        },
+        select: {
+          id: true,
+          name: true,
+          parentId: true,
+        },
+      }),
+      prisma.file.findMany({
+        where: {
+          userId: session.user.id,
+          folderId: { in: folderIds },
+        },
+        orderBy: [{ folderId: "asc" }, { name: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          folderId: true,
+          secureUrl: true,
+        },
+      }),
+    ]);
+
+    const foldersById = new Map(folders.map((folder) => [folder.id, folder]));
+
+    return Response.json({
+      folderId,
+      files: files.map((file) => ({
+        id: file.id,
+        name: file.name,
+        relativePath: buildRelativeFolderPath(folderId, file.folderId, foldersById),
+        downloadUrl: buildCloudinaryDownloadUrl(file.secureUrl, file.name),
+      })),
+    });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
 
 async function handleUpdateFolder(
   request: Request,
@@ -175,4 +233,27 @@ async function collectDescendantFolderIds(userId: string, folderId: string): Pro
   }
 
   return allFolderIds;
+}
+
+function buildRelativeFolderPath(
+  rootFolderId: string,
+  fileFolderId: string,
+  foldersById: Map<string, { id: string; name: string; parentId: string | null }>,
+): string {
+  if (fileFolderId === rootFolderId) {
+    return "";
+  }
+
+  const segments: string[] = [];
+  let cursor = foldersById.get(fileFolderId);
+
+  while (cursor && cursor.id !== rootFolderId) {
+    segments.unshift(cursor.name);
+    if (!cursor.parentId) {
+      break;
+    }
+    cursor = foldersById.get(cursor.parentId);
+  }
+
+  return segments.join("/");
 }
