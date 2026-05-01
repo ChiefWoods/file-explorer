@@ -390,6 +390,15 @@ export function DriveFolderPage({
     });
   }
 
+  function selectForContextMenu(itemId: string) {
+    setSelectedIds((prev) => {
+      if (prev.has(itemId)) {
+        return prev;
+      }
+      return new Set([itemId]);
+    });
+  }
+
   function clearSelection() {
     setSelectedIds(new Set());
   }
@@ -892,7 +901,11 @@ export function DriveFolderPage({
       emptyDescription="Upload files or create a folder to get started."
       items={filteredItems}
       selectedIds={selectedIds}
+      canDownloadSelected={canDownloadSelected}
+      isDownloadingSelected={isDownloadingSelected}
+      isDeletingSelected={isDeletingSelected}
       onToggleSelect={toggleSelect}
+      onContextMenuSelect={selectForContextMenu}
       onOpenFolder={(item) => {
         handleOpenFolder(item as DriveItem & { type: "folder" });
       }}
@@ -902,11 +915,17 @@ export function DriveFolderPage({
       onDownloadItem={(item) => {
         void downloadItem(item as DriveItem);
       }}
+      onDownloadSelected={() => {
+        void downloadSelected();
+      }}
       onShareItem={(item) => {
         void shareItem(item as DriveItem);
       }}
       onDeleteItem={(item) => {
         void handleDeleteItem(item as DriveItem);
+      }}
+      onDeleteSelected={() => {
+        void deleteSelected();
       }}
       deletingItemIds={deletingItemIds}
       renderItemIcon={(item) => <DriveItemIcon item={item as DriveItem} />}

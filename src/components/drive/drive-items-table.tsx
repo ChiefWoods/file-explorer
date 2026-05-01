@@ -1,10 +1,11 @@
 import type { DriveItemRecord, DriveItemsViewProps } from "#/components/drive/drive-items.types";
 
+import { DriveItemActionsMenuContent } from "#/components/drive/drive-item-actions-menu-content";
 import { Button } from "#/components/ui/button";
+import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "#/components/ui/context-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import {
@@ -17,7 +18,7 @@ import {
 } from "#/components/ui/table";
 import { formatBytes } from "#/lib/utils";
 import { cn } from "#/lib/utils";
-import { Download, MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 
 type DriveTableItem = DriveItemRecord;
 
@@ -27,12 +28,18 @@ export function DriveItemsTable({
   isAuthenticated,
   items,
   selectedIds,
+  canDownloadSelected,
+  isDownloadingSelected,
+  isDeletingSelected,
   onToggleSelect,
+  onContextMenuSelect,
   onOpenFolder,
   onRenameItem,
   onDownloadItem,
+  onDownloadSelected,
   onShareItem,
   onDeleteItem,
+  onDeleteSelected,
   deletingItemIds,
   renderItemIcon,
 }: DriveItemsTableProps) {
@@ -58,111 +65,95 @@ export function DriveItemsTable({
         <TableBody>
           {items.map((item) => {
             const selected = selectedIds.has(item.id);
+            const useSelectedItemsActions = selected && selectedIds.size > 1;
             return (
-              <TableRow
-                key={item.id}
-                tabIndex={0}
-                onClick={() => onToggleSelect(item.id)}
-                onDoubleClick={() => {
-                  if (item.type === "folder") {
-                    onOpenFolder(item as DriveTableItem & { type: "folder" });
+              <ContextMenu key={item.id}>
+                <ContextMenuTrigger
+                  render={
+                    <TableRow
+                      tabIndex={0}
+                      onClick={() => onToggleSelect(item.id)}
+                      onContextMenu={() => onContextMenuSelect(item.id)}
+                      onDoubleClick={() => {
+                        if (item.type === "folder") {
+                          onOpenFolder(item as DriveTableItem & { type: "folder" });
+                        }
+                      }}
+                      data-state={selected ? "selected" : undefined}
+                      className={cn(
+                        "cursor-pointer transition-colors outline-none hover:bg-muted/60 focus-visible:bg-muted/60 active:bg-muted/70",
+                        selected && "bg-muted data-[state=selected]:bg-muted",
+                      )}
+                    />
                   }
-                }}
-                data-state={selected ? "selected" : undefined}
-                className={cn(
-                  "cursor-pointer transition-colors outline-none hover:bg-muted/60 focus-visible:bg-muted/60 active:bg-muted/70",
-                  selected && "bg-muted data-[state=selected]:bg-muted",
-                )}
-              >
-                <TableCell className="px-4 py-3 text-left">
-                  <span className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
-                    {renderItemIcon(item)}
-                    {item.name}
-                  </span>
-                </TableCell>
-                <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
-                  {item.modified}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
-                  {item.type === "folder" ? "" : formatBytes(item.bytes)}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`Open ${item.name} actions`}
-                          onClick={(event) => event.stopPropagation()}
+                >
+                  <TableCell className="px-4 py-3 text-left">
+                    <span className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
+                      {renderItemIcon(item)}
+                      {item.name}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
+                    {item.modified}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
+                    {item.type === "folder" ? "" : formatBytes(item.bytes)}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Open ${item.name} actions`}
+                            onClick={(event) => event.stopPropagation()}
+                          />
+                        }
+                      >
+                        <MoreHorizontal />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-36">
+                        <DriveItemActionsMenuContent
+                          menuType="dropdown"
+                          item={item}
+                          isAuthenticated={isAuthenticated}
+                          deletingItemIds={deletingItemIds}
+                          canDownloadSelected={canDownloadSelected}
+                          isDownloadingSelected={isDownloadingSelected}
+                          isDeletingSelected={isDeletingSelected}
+                          onRenameItem={onRenameItem}
+                          onDownloadItem={onDownloadItem}
+                          onDownloadSelected={onDownloadSelected}
+                          onShareItem={onShareItem}
+                          onDeleteItem={onDeleteItem}
+                          onDeleteSelected={onDeleteSelected}
                         />
-                      }
-                    >
-                      <MoreHorizontal />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="min-w-36">
-                      {isAuthenticated && (
-                        <DropdownMenuItem
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onRenameItem(item);
-                          }}
-                        >
-                          <PencilLine />
-                          Rename
-                        </DropdownMenuItem>
-                      )}
-                      {item.type === "file" && (
-                        <DropdownMenuItem
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onDownloadItem(item);
-                          }}
-                        >
-                          <Download />
-                          Download
-                        </DropdownMenuItem>
-                      )}
-                      {isAuthenticated && item.type === "folder" && (
-                        <DropdownMenuItem
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onShareItem(item);
-                          }}
-                        >
-                          <Share2 />
-                          Share
-                        </DropdownMenuItem>
-                      )}
-                      {isAuthenticated && item.type === "folder" && (
-                        <DropdownMenuItem
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onDownloadItem(item);
-                          }}
-                        >
-                          <Download />
-                          Download
-                        </DropdownMenuItem>
-                      )}
-                      {isAuthenticated && (
-                        <DropdownMenuItem
-                          variant="destructive"
-                          disabled={deletingItemIds.has(item.id)}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onDeleteItem(item);
-                          }}
-                        >
-                          <Trash2 />
-                          {deletingItemIds.has(item.id) ? "Deleting..." : "Delete"}
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </ContextMenuTrigger>
+                <ContextMenuContent align="end" className="min-w-36">
+                  <DriveItemActionsMenuContent
+                    menuType="context"
+                    item={item}
+                    isAuthenticated={isAuthenticated}
+                    deletingItemIds={deletingItemIds}
+                    disableRename={selectedIds.size > 1}
+                    canDownloadSelected={canDownloadSelected}
+                    isDownloadingSelected={isDownloadingSelected}
+                    isDeletingSelected={isDeletingSelected}
+                    useSelectedItemsActions={useSelectedItemsActions}
+                    onRenameItem={onRenameItem}
+                    onDownloadItem={onDownloadItem}
+                    onDownloadSelected={onDownloadSelected}
+                    onShareItem={onShareItem}
+                    onDeleteItem={onDeleteItem}
+                    onDeleteSelected={onDeleteSelected}
+                  />
+                </ContextMenuContent>
+              </ContextMenu>
             );
           })}
         </TableBody>
