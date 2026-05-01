@@ -1,0 +1,15 @@
+{
+  "ignore": {
+    "files": [
+      "src/components/ui/**",
+      "src/routeTree.gen.ts",
+      "generated/**",
+      "prisma/**",
+      "dist/**",
+      ".output/**",
+      ".tanstack/**",
+      "node_modules/**",
+      "coverage/**"
+    ]
+  }
+}
