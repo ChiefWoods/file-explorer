@@ -77,12 +77,12 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
         }}
       >
         {files.length > 0 ? (
-          <ul className="bg-card max-h-28 space-y-1 overflow-auto rounded-md p-2 text-left">
-            {files.map((file, index) => {
+          <ul className="max-h-28 space-y-1 overflow-auto rounded-md bg-card p-2 text-left">
+            {files.map((file) => {
               const ItemIcon = getFileTypeIcon(file);
               return (
                 <li
-                  key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
+                  key={`${file.name}-${file.size}-${file.lastModified}`}
                   className="flex min-w-0 items-center gap-2"
                 >
                   <ItemIcon className="size-3.5 shrink-0 text-primary" aria-hidden />

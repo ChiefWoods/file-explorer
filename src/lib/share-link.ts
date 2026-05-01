@@ -22,7 +22,7 @@ export const createShareLinkInputSchema = z
     }
   });
 
-export type ResolveShareExpiryInput = {
+type ResolveShareExpiryInput = {
   duration?: ShareDurationPreset;
   expiresAt?: string;
 };

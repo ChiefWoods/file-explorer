@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 
-export type CloudinaryResourceType = "image" | "raw" | "video";
+type CloudinaryResourceType = "image" | "raw" | "video";
 const CLOUDINARY_UPLOAD_FOLDER = "file-uploader";
 
 type UploadBufferParams = {

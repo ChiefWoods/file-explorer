@@ -63,6 +63,8 @@ const DRIVE_SECTION_ITEMS: Array<{
   { key: "shared", label: "Shared", icon: Share2 },
 ];
 
+const EMPTY_FOLDERS: DriveSidebarFolderNode[] = [];
+
 function UserMetadata({ name, email }: { name: string; email: string }) {
   return (
     <>
@@ -83,7 +85,7 @@ export function DriveSidebar({
   storageUsed,
   storagePct,
   currentFolderId,
-  nestedFolders = [],
+  nestedFolders = EMPTY_FOLDERS,
 }: DriveSidebarProps) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();

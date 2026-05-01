@@ -22,9 +22,9 @@ const socialLogins: {
   { provider: "github", iconSrc: githubIcons, ariaLabel: "Continue with GitHub" },
 ];
 
-export type SocialProvider = "google" | "github";
+type SocialProvider = "google" | "github";
 
-export type SocialSignInProps = {
+type SocialSignInProps = {
   callbackURL: string;
   onError: (message: string) => void;
   className?: string;

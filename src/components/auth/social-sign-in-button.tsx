@@ -5,7 +5,7 @@ import { cn } from "#/lib/utils";
 
 const outlineFullWidthClassName = "w-full gap-2";
 
-export type SocialSignInButtonProps = {
+type SocialSignInButtonProps = {
   /** URLs for light UI vs dark UI (`html.dark`). */
   iconSrc: { light: string; dark: string };
   /** Shown next to the icon when not pending (e.g. "Continue with Google"). */

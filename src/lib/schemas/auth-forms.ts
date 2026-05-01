@@ -8,8 +8,6 @@ export const signinFormSchema = z.object({
     .max(128, "Password must be at most 128 characters."),
 });
 
-export type SigninFormValues = z.infer<typeof signinFormSchema>;
-
 export const signupFormSchema = z
   .object({
     name: z
@@ -33,5 +31,3 @@ export const signupFormSchema = z
       });
     }
   });
-
-export type SignupFormValues = z.infer<typeof signupFormSchema>;

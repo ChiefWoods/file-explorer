@@ -3,7 +3,7 @@ export type DriveViewMode = "list" | "grid";
 const DRIVE_VIEW_MODE_COOKIE_KEY = "drive_view_mode";
 const DRIVE_VIEW_MODE_STORAGE_KEY = "drive:view-mode";
 
-export function normalizeDriveViewMode(value: unknown): DriveViewMode {
+function normalizeDriveViewMode(value: unknown): DriveViewMode {
   return value === "grid" ? "grid" : "list";
 }
 

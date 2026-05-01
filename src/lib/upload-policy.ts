@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
-export const MAX_ITEM_NAME_LENGTH = 120;
+const MAX_ITEM_NAME_LENGTH = 120;
 
 const MIME_EXTENSION_ALLOWLIST = {
   "image/jpeg": ["jpg", "jpeg"],
@@ -28,19 +28,19 @@ export const ALLOWED_UPLOAD_MIME_TYPES = Object.freeze(
   new Set<string>(Object.keys(MIME_EXTENSION_ALLOWLIST)),
 );
 
-export const itemNameSchema = z
-  .string()
-  .trim()
-  .min(1, "Name is required.")
-  .max(MAX_ITEM_NAME_LENGTH, `Name must be at most ${MAX_ITEM_NAME_LENGTH} characters.`)
-  .transform((value) => normalizeItemName(value));
+function createItemNameSchema() {
+  return z
+    .string()
+    .trim()
+    .min(1, "Name is required.")
+    .max(MAX_ITEM_NAME_LENGTH, `Name must be at most ${MAX_ITEM_NAME_LENGTH} characters.`)
+    .transform((value) => normalizeItemName(value));
+}
 
-export const folderNameSchema = itemNameSchema;
-export const fileNameSchema = itemNameSchema;
+export const folderNameSchema = createItemNameSchema();
+export const fileNameSchema = createItemNameSchema();
 
-export type UploadValidationResult =
-  | { ok: true; normalizedName: string }
-  | { ok: false; reason: string };
+type UploadValidationResult = { ok: true; normalizedName: string } | { ok: false; reason: string };
 
 export function normalizeItemName(value: string): string {
   const cleaned = value.replace(INVALID_NAME_CHARS, " ").replace(WHITESPACE_RE, " ").trim();
@@ -56,11 +56,11 @@ export function normalizeItemName(value: string): string {
   return cleaned.slice(0, MAX_ITEM_NAME_LENGTH).trim();
 }
 
-export function isMimeTypeAllowed(mimeType: string): boolean {
+function isMimeTypeAllowed(mimeType: string): boolean {
   return ALLOWED_UPLOAD_MIME_TYPES.has(mimeType.toLowerCase());
 }
 
-export function isExtensionAllowedForMime(fileName: string, mimeType: string): boolean {
+function isExtensionAllowedForMime(fileName: string, mimeType: string): boolean {
   const allowedExtensions =
     MIME_EXTENSION_ALLOWLIST[mimeType.toLowerCase() as keyof typeof MIME_EXTENSION_ALLOWLIST];
   if (!allowedExtensions) {

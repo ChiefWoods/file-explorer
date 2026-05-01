@@ -75,7 +75,7 @@ type AddedFilterValue =
   | "last-year"
   | "custom-range";
 
-const MIME_TYPE_FILTER_OPTIONS = [...ALLOWED_UPLOAD_MIME_TYPES].sort();
+const MIME_TYPE_FILTER_OPTIONS = Array.from(ALLOWED_UPLOAD_MIME_TYPES).toSorted();
 
 function formatMimeTypeLabel(mimeType: string): string {
   const [topLevel, subTypeRaw] = mimeType.split("/");

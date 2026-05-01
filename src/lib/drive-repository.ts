@@ -3,7 +3,7 @@ import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
 import { HttpError } from "#/lib/api/http";
 import { prisma } from "#/lib/db";
 
-export const ROOT_FOLDER_NAME = "Root";
+const ROOT_FOLDER_NAME = "Root";
 
 type FolderSummary = {
   id: string;

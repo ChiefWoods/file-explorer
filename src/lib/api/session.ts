@@ -3,7 +3,7 @@ import { auth } from "#/lib/auth";
 
 type SessionPayload = Awaited<ReturnType<typeof auth.api.getSession>>;
 
-export type AuthSession = NonNullable<SessionPayload>;
+type AuthSession = NonNullable<SessionPayload>;
 
 export async function requireAuthSession(request: Request): Promise<AuthSession> {
   const session = await auth.api.getSession({ headers: request.headers });

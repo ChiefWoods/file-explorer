@@ -62,9 +62,6 @@ const getSharedLinks = createServerFn({ method: "GET" })
   });
 
 export const Route = createFileRoute("/drive/_layout/shared")({
-  head: () => ({
-    meta: [{ title: "Shared - File Uploader" }],
-  }),
   beforeLoad: ({ context }) => {
     if (!context.user || !context.session) {
       throw new Error("Authentication required.");
@@ -72,6 +69,9 @@ export const Route = createFileRoute("/drive/_layout/shared")({
     return { user: context.user, session: context.session };
   },
   loader: ({ context }) => getSharedLinks({ data: { userId: context.user.id } }),
+  head: () => ({
+    meta: [{ title: "Shared - File Uploader" }],
+  }),
   component: RouteComponent,
 });
 

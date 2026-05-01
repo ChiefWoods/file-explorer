@@ -9,5 +9,3 @@ export const uploadFilesFormSchema = z.object({
     )
     .min(1, "Select at least one file."),
 });
-
-export type UploadFilesFormValues = z.infer<typeof uploadFilesFormSchema>;
