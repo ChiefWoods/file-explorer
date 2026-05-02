@@ -151,13 +151,13 @@ function RouteComponent() {
                 <TableHead className="px-4 py-2 text-xs font-semibold tracking-wide text-(--sea-ink-soft) uppercase">
                   Folder
                 </TableHead>
-                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase">
+                <TableHead className="hidden w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase sm:table-cell">
                   Created
                 </TableHead>
-                <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase">
+                <TableHead className="hidden w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase sm:table-cell">
                   Expires
                 </TableHead>
-                <TableHead className="w-[240px] px-4 py-2 text-xs font-semibold tracking-wide text-(--sea-ink-soft) uppercase">
+                <TableHead className="hidden w-[240px] px-4 py-2 text-xs font-semibold tracking-wide text-(--sea-ink-soft) uppercase sm:table-cell">
                   Link
                 </TableHead>
                 <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase">
@@ -169,15 +169,21 @@ function RouteComponent() {
               {links.map((link) => (
                 <TableRow key={link.id} className="hover:bg-(--surface)/60!">
                   <TableCell className="px-4 py-3 text-left text-sm text-(--sea-ink)">
-                    {link.folderName}
+                    <div className="min-w-0">
+                      <p className="truncate">{link.folderName}</p>
+                      <p className="mt-1 text-xs text-(--sea-ink-soft) sm:hidden">
+                        {formatShortDate(link.createdAt)} ·{" "}
+                        {link.expiresAt ? formatShortDate(link.expiresAt) : "Never"}
+                      </p>
+                    </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
+                  <TableCell className="hidden px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft) sm:table-cell">
                     {formatShortDate(link.createdAt)}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
+                  <TableCell className="hidden px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft) sm:table-cell">
                     {link.expiresAt ? formatShortDate(link.expiresAt) : "Never"}
                   </TableCell>
-                  <TableCell className="px-4 py-3">
+                  <TableCell className="hidden px-4 py-3 sm:table-cell">
                     <p className="truncate text-sm text-(--sea-ink-soft)">{link.url}</p>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right whitespace-nowrap">

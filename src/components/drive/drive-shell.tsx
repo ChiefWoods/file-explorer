@@ -20,9 +20,11 @@ export function DriveShell({ title, actions, topContent, children }: DriveShellP
               {title}
             </div>
           </div>
-          <div className="flex min-h-9 w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-2.5">
-            {actions}
-          </div>
+          {actions && (
+            <div className="flex min-h-9 w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-2.5">
+              {actions}
+            </div>
+          )}
         </div>
         {topContent}
       </div>

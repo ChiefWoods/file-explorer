@@ -51,10 +51,10 @@ export function DriveItemsTable({
             <TableHead className="px-4 py-2 text-xs font-semibold tracking-wide text-(--sea-ink-soft) uppercase">
               Name
             </TableHead>
-            <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase">
+            <TableHead className="hidden w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase sm:table-cell">
               Last Modified
             </TableHead>
-            <TableHead className="w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase">
+            <TableHead className="hidden w-[1%] px-4 py-2 text-right text-xs font-semibold tracking-wide whitespace-nowrap text-(--sea-ink-soft) uppercase sm:table-cell">
               Size
             </TableHead>
             <TableHead className="w-[40px] px-4 py-2 text-xs font-semibold tracking-wide text-(--sea-ink-soft) uppercase">
@@ -88,15 +88,21 @@ export function DriveItemsTable({
                   }
                 >
                   <TableCell className="px-4 py-3 text-left">
-                    <span className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
-                      {renderItemIcon(item)}
-                      {item.name}
-                    </span>
+                    <div className="min-w-0">
+                      <span className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
+                        {renderItemIcon(item)}
+                        <span className="truncate">{item.name}</span>
+                      </span>
+                      <p className="mt-1 text-xs text-(--sea-ink-soft) sm:hidden">
+                        {item.modified}
+                        {item.type === "file" ? ` · ${formatBytes(item.bytes)}` : ""}
+                      </p>
+                    </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
+                  <TableCell className="hidden px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft) sm:table-cell">
                     {item.modified}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft)">
+                  <TableCell className="hidden px-4 py-3 text-right text-sm whitespace-nowrap text-(--sea-ink-soft) sm:table-cell">
                     {item.type === "folder" ? "" : formatBytes(item.bytes)}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
