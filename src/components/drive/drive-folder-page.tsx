@@ -329,10 +329,20 @@ export function DriveFolderPage({
     </Breadcrumb>
   );
 
-  async function refreshDriveListing() {
-    await queryClient.invalidateQueries({
-      queryKey: queryKeys.drive.listing(currentFolderId),
-    });
+  async function refreshDriveListing({
+    includeSidebar = false,
+  }: { includeSidebar?: boolean } = {}) {
+    const invalidations: Array<Promise<unknown>> = [
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.drive.listing(currentFolderId),
+      }),
+    ];
+
+    if (includeSidebar) {
+      invalidations.push(router.invalidate());
+    }
+
+    await Promise.all(invalidations);
   }
 
   const uploadForm = useForm({
@@ -456,7 +466,7 @@ export function DriveFolderPage({
       throw new Error(getApiErrorMessage(json, `Could not rename ${item.type}.`));
     }
 
-    await refreshDriveListing();
+    await refreshDriveListing({ includeSidebar: item.type === "folder" });
   }
 
   async function downloadItem(item: DriveItem) {
@@ -596,18 +606,22 @@ export function DriveFolderPage({
         const results = await Promise.allSettled(
           selectedItems.map(async (item) => {
             await deleteDriveItem(item);
-            return item.id;
+            return item;
           }),
         );
 
         const failedItemIds = new Set<string>();
         let successCount = 0;
         let firstErrorMessage: string | null = null;
+        let didDeleteFolder = false;
 
         for (let index = 0; index < results.length; index += 1) {
           const result = results[index];
           if (result.status === "fulfilled") {
             successCount += 1;
+            if (result.value.type === "folder") {
+              didDeleteFolder = true;
+            }
             continue;
           }
 
@@ -617,7 +631,7 @@ export function DriveFolderPage({
           }
         }
 
-        await refreshDriveListing();
+        await refreshDriveListing({ includeSidebar: didDeleteFolder });
         setSelectedIds(failedItemIds);
 
         if (failedItemIds.size > 0) {
@@ -654,7 +668,7 @@ export function DriveFolderPage({
     try {
       const deletePromise = (async () => {
         await deleteDriveItem(item);
-        await refreshDriveListing();
+        await refreshDriveListing({ includeSidebar: item.type === "folder" });
         setSelectedIds((prev) => {
           const next = new Set(prev);
           next.delete(item.id);
@@ -771,7 +785,7 @@ export function DriveFolderPage({
 
         setNewFolderName("");
         setFolderDialogOpen(false);
-        await refreshDriveListing();
+        await refreshDriveListing({ includeSidebar: true });
       })();
 
       toast.promise(createPromise, {
