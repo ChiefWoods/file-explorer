@@ -35,26 +35,14 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
 
   return (
     <div className="min-w-0 space-y-2">
-      <div
-        className={`min-w-0 cursor-pointer overflow-hidden rounded-xl border border-dashed p-6 text-center outline-none ${
+      <button
+        type="button"
+        className={`w-full min-w-0 overflow-hidden rounded-xl border border-dashed p-6 text-center outline-none ${
           isDragActive ? "border-primary bg-(--surface)" : "border-border bg-card"
-        } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
-        role="button"
-        tabIndex={disabled ? -1 : 0}
-        aria-disabled={disabled}
+        } ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+        disabled={disabled}
         onClick={() => {
-          if (!disabled) {
-            fileInputRef.current?.click();
-          }
-        }}
-        onKeyDown={(event) => {
-          if (disabled) {
-            return;
-          }
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            fileInputRef.current?.click();
-          }
+          fileInputRef.current?.click();
         }}
         onDragOver={(event) => {
           if (disabled) {
@@ -99,7 +87,7 @@ export function FileDropzone({ files, onFilesChange, disabled = false }: FileDro
             <p className="mt-1 text-xs text-(--sea-ink-soft)">or click to choose files</p>
           </>
         )}
-      </div>
+      </button>
 
       <input
         type="file"

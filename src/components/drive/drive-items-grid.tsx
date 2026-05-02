@@ -41,20 +41,13 @@ export function DriveItemsGrid({
           <ContextMenu key={item.id}>
             <ContextMenuTrigger
               render={
-                <div
-                  role="button"
-                  tabIndex={0}
+                <button
+                  type="button"
                   onClick={() => onToggleSelect(item.id)}
                   onContextMenu={() => onContextMenuSelect(item.id)}
                   onDoubleClick={() => {
                     if (item.type === "folder") {
                       onOpenFolder(item as DriveItemRecord & { type: "folder" });
-                    }
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      onToggleSelect(item.id);
                     }
                   }}
                   className={`flex min-h-[96px] flex-col rounded-xl border p-3 text-left transition sm:min-h-[112px] sm:p-4 ${
