@@ -37,6 +37,7 @@ export function DriveItemsGrid({
       {items.map((item) => {
         const selected = selectedIds.has(item.id);
         const useSelectedItemsActions = selected && selectedIds.size > 1;
+        const canOpenSelectedFolder = selected && selectedIds.size === 1 && item.type === "folder";
         return (
           <ContextMenu key={item.id}>
             <ContextMenuTrigger
@@ -47,6 +48,12 @@ export function DriveItemsGrid({
                   onContextMenu={() => onContextMenuSelect(item.id)}
                   onDoubleClick={() => {
                     if (item.type === "folder") {
+                      onOpenFolder(item as DriveItemRecord & { type: "folder" });
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && canOpenSelectedFolder) {
+                      event.preventDefault();
                       onOpenFolder(item as DriveItemRecord & { type: "folder" });
                     }
                   }}
