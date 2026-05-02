@@ -16,7 +16,7 @@ File storage management tool for [The Odin Project](https://www.theodinproject.c
 
 ### Tech Stack
 
-- [![TanStack Start](https://img.shields.io/badge/TanStack-Start-383936?style=for-the-badge&logo=reactrouter)](https://tanstack.com/start/)
+- [![TanStack Start](https://img.shields.io/badge/TanStack_Start-383936?style=for-the-badge&logo=reactrouter)](https://tanstack.com/start/)
 - [![Prisma](https://img.shields.io/badge/Prisma-383936?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
 - [![Shadcn](https://img.shields.io/badge/Shadcn-383936?style=for-the-badge&logo=shadcnui)](https://ui.shadcn.com/)
 - [![Vitest](https://img.shields.io/badge/Vitest-383936?style=for-the-badge&logo=vitest)](https://vitest.dev)
