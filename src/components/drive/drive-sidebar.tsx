@@ -123,7 +123,7 @@ export function DriveSidebar({
   }
 
   return (
-    <Sidebar className="w-[264px] border-border bg-sidebar p-2">
+    <Sidebar className="border-border bg-sidebar p-2 [--sidebar-width:264px]">
       <SidebarHeader className="flex flex-row items-center gap-2.5">
         <Cloud className="size-6 text-primary" aria-hidden />
         <p className="m-0 text-[17px] font-bold text-(--sea-ink)">File Uploader</p>
