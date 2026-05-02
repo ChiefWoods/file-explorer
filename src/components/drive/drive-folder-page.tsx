@@ -933,7 +933,7 @@ export function DriveFolderPage({
   );
 
   const selectionRibbon = (
-    <div className="flex h-full items-center justify-between rounded-xl border border-border bg-card px-3 py-2">
+    <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2">
       <div className="flex items-center gap-2.5 text-sm text-(--sea-ink)">
         <Button
           type="button"
@@ -946,7 +946,7 @@ export function DriveFolderPage({
         </Button>
         <span>{selectedCount} selected</span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {canDownloadSelected && (
           <Button
             type="button"
@@ -974,7 +974,7 @@ export function DriveFolderPage({
   );
 
   const filterRibbon = (
-    <div className="flex h-full items-center gap-2">
+    <div className="flex min-h-11 flex-wrap items-center gap-2">
       <Select
         value={typeFilter}
         onValueChange={(value) => setTypeFilter(value ? (String(value) as TypeFilterValue) : null)}
@@ -1300,7 +1300,7 @@ export function DriveFolderPage({
         </>
       }
       topContent={
-        <div className="h-11">
+        <div className="min-h-11">
           {selectedCount > 0 && selectionRibbon}
           {selectedCount === 0 && filterRibbon}
         </div>
