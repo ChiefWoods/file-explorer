@@ -1,6 +1,7 @@
 import type { DriveSidebarFolderNode } from "#/lib/drive-listing.types";
 
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
+import { Button } from "#/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/components/ui/collapsible";
 import {
   DropdownMenu,
@@ -161,10 +162,12 @@ export function DriveSidebar({
                           {nestedFolders.length > 0 && (
                             <CollapsibleTrigger
                               render={
-                                <button
+                                <Button
                                   type="button"
+                                  variant="ghost"
+                                  size="icon-xs"
                                   aria-label="Toggle My Drive folders"
-                                  className="absolute top-0 right-0 inline-flex size-8 items-center justify-center rounded-md text-(--sea-ink-soft) hover:bg-sidebar-accent"
+                                  className="absolute top-1 right-1 text-(--sea-ink-soft) hover:bg-sidebar-accent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent aria-expanded:text-(--sea-ink-soft) aria-expanded:hover:bg-sidebar-accent aria-expanded:hover:text-sidebar-accent-foreground"
                                   onClick={(event) => {
                                     event.stopPropagation();
                                   }}
@@ -382,10 +385,12 @@ function DriveSidebarFolderTreeItem({
           </SidebarMenuSubButton>
           <CollapsibleTrigger
             render={
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-xs"
                 aria-label={`Toggle ${folder.name}`}
-                className="absolute top-0 right-0 inline-flex size-7 items-center justify-center rounded-md text-(--sea-ink-soft) hover:bg-sidebar-accent"
+                className="absolute top-0.5 right-0.5 text-(--sea-ink-soft) hover:bg-sidebar-accent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent aria-expanded:text-(--sea-ink-soft) aria-expanded:hover:bg-sidebar-accent aria-expanded:hover:text-sidebar-accent-foreground"
                 onClick={(event) => {
                   event.stopPropagation();
                 }}
