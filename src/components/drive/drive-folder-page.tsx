@@ -1,6 +1,7 @@
 import type { DriveItemRecord } from "#/components/drive/drive-items.types";
 import type { DriveFolderListingResponse } from "#/lib/drive-listing.types";
 
+import { DriveActionButton } from "#/components/drive/drive-action-button";
 import { DriveItemsView } from "#/components/drive/drive-items-view";
 import { DriveShell } from "#/components/drive/drive-shell";
 import { FileDropzone } from "#/components/drive/file-dropzone";
@@ -948,27 +949,25 @@ export function DriveFolderPage({
       </div>
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {canDownloadSelected && (
-          <Button
+          <DriveActionButton
             type="button"
+            icon={Download}
             variant="outline"
-            size="sm"
             onClick={() => void downloadSelected()}
             disabled={isDownloadingSelected || isDeletingSelected || selectedCount === 0}
           >
-            <Download data-icon="inline-start" />
             {isDownloadingSelected ? "Preparing..." : "Download"}
-          </Button>
+          </DriveActionButton>
         )}
-        <Button
+        <DriveActionButton
           type="button"
+          icon={Trash2}
           variant="destructive"
-          size="sm"
           onClick={() => void deleteSelected()}
           disabled={isDeletingSelected || isDownloadingSelected || selectedCount === 0}
         >
-          <Trash2 data-icon="inline-start" />
           {isDeletingSelected ? "Deleting..." : "Delete"}
-        </Button>
+        </DriveActionButton>
       </div>
     </div>
   );
@@ -1194,8 +1193,9 @@ export function DriveFolderPage({
                 uploadForm.reset({ files: [] });
               }}
             >
-              <DialogTrigger render={<Button type="button" variant="outline" size="sm" />}>
-                <Upload data-icon="inline-start" />
+              <DialogTrigger
+                render={<DriveActionButton type="button" icon={Upload} variant="outline" />}
+              >
                 Upload
               </DialogTrigger>
               <DialogContent className="overflow-x-hidden overflow-y-auto">
@@ -1247,8 +1247,7 @@ export function DriveFolderPage({
 
           {!!user && (
             <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
-              <DialogTrigger render={<Button type="button" size="sm" />}>
-                <FolderPlus data-icon="inline-start" />
+              <DialogTrigger render={<DriveActionButton type="button" icon={FolderPlus} />}>
                 New folder
               </DialogTrigger>
               <DialogContent>
