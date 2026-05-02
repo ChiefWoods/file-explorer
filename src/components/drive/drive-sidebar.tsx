@@ -88,7 +88,7 @@ export function DriveSidebar({
   currentFolderId,
   nestedFolders = EMPTY_FOLDERS,
 }: DriveSidebarProps) {
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
   const { isSigningOut, signOut } = useSignOut();
@@ -105,6 +105,12 @@ export function DriveSidebar({
   const userEmail = user?.email?.trim() || "No email";
   const storageProgressClassName =
     storagePct >= 95 ? "bg-red-500" : storagePct >= 75 ? "bg-amber-500" : "bg-primary";
+
+  function closeMobileSidebarIfNeeded() {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }
 
   function isFolderOpen(folderId: string): boolean {
     return openFolderIds.has(folderId);
@@ -151,7 +157,10 @@ export function DriveSidebar({
                             type="button"
                             isActive={isActive}
                             className="pr-8"
-                            onClick={() => void navigate({ to: "/drive" })}
+                            onClick={() => {
+                              closeMobileSidebarIfNeeded();
+                              void navigate({ to: "/drive" });
+                            }}
                           >
                             <Icon
                               className={`size-[18px] ${isActive ? "text-primary" : "text-(--sea-ink-soft)"}`}
@@ -190,6 +199,7 @@ export function DriveSidebar({
                               folders={nestedFolders}
                               currentFolderId={currentFolderId}
                               onSelect={(folderPath) => {
+                                closeMobileSidebarIfNeeded();
                                 void navigate({
                                   to: "/drive/$",
                                   params: { _splat: folderPath },
@@ -210,7 +220,10 @@ export function DriveSidebar({
                     <SidebarMenuButton
                       type="button"
                       isActive={isActive}
-                      onClick={() => void navigate({ to: "/drive/shared" })}
+                      onClick={() => {
+                        closeMobileSidebarIfNeeded();
+                        void navigate({ to: "/drive/shared" });
+                      }}
                     >
                       <Icon
                         className={`size-[18px] ${isActive ? "text-primary" : "text-(--sea-ink-soft)"}`}
@@ -249,6 +262,7 @@ export function DriveSidebar({
                   type="button"
                   onClick={() => {
                     const href = `${location.pathname}${location.searchStr ?? ""}`;
+                    closeMobileSidebarIfNeeded();
                     void navigate({
                       to: "/sign-in",
                       search: { redirect: safeInternalPath(href, "/drive") },
