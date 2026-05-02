@@ -979,7 +979,7 @@ export function DriveFolderPage({
         value={typeFilter}
         onValueChange={(value) => setTypeFilter(value ? (String(value) as TypeFilterValue) : null)}
       >
-        <SelectTrigger size="sm" className="min-w-[144px]">
+        <SelectTrigger size="sm" className="w-full sm:w-auto sm:min-w-[144px]">
           <SelectValue>
             {(value) => {
               if (!value) {
@@ -1025,7 +1025,7 @@ export function DriveFolderPage({
           }
         }}
       >
-        <SelectTrigger size="sm" className="min-w-[168px]">
+        <SelectTrigger size="sm" className="w-full sm:w-auto sm:min-w-[168px]">
           <SelectValue>
             {(value) => {
               if (!value) {
