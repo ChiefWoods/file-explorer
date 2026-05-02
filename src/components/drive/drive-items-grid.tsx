@@ -33,7 +33,7 @@ export function DriveItemsGrid({
   renderItemIcon,
 }: DriveItemsGridProps) {
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
+    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] sm:gap-3">
       {items.map((item) => {
         const selected = selectedIds.has(item.id);
         const useSelectedItemsActions = selected && selectedIds.size > 1;
@@ -57,7 +57,7 @@ export function DriveItemsGrid({
                       onToggleSelect(item.id);
                     }
                   }}
-                  className={`flex min-h-[112px] flex-col rounded-xl border p-4 text-left transition ${
+                  className={`flex min-h-[96px] flex-col rounded-xl border p-3 text-left transition sm:min-h-[112px] sm:p-4 ${
                     selected
                       ? "border-primary bg-(--surface)"
                       : "border-border bg-card hover:bg-(--surface)/60"
@@ -65,10 +65,10 @@ export function DriveItemsGrid({
                 />
               }
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex min-w-0 items-start gap-2 text-(--sea-ink)">
+              <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+                <div className="flex min-w-0 items-start gap-1.5 text-(--sea-ink) sm:gap-2">
                   <span className="mt-0.5 shrink-0 self-start">{renderItemIcon(item)}</span>
-                  <p className="m-0 min-w-0 text-sm font-semibold">{item.name}</p>
+                  <p className="m-0 min-w-0 text-sm leading-snug font-semibold">{item.name}</p>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger
@@ -76,7 +76,8 @@ export function DriveItemsGrid({
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon-sm"
+                        size="icon-xs"
+                        className="sm:size-8"
                         aria-label={`Open ${item.name} actions`}
                         onClick={(event) => event.stopPropagation()}
                       />
@@ -103,7 +104,7 @@ export function DriveItemsGrid({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              <p className="mt-auto pt-2 text-xs text-(--sea-ink-soft)">
+              <p className="mt-auto pt-1.5 text-xs text-(--sea-ink-soft) sm:pt-2">
                 {item.modified} · {item.type === "folder" ? "Folder" : formatBytes(item.bytes)}
               </p>
             </ContextMenuTrigger>
