@@ -115,8 +115,8 @@ function RouteComponent() {
   return (
     <>
       <Header />
-      <main className="page-wrap px-4 pt-10 pb-16">
-        <div className="island-shell mx-auto w-full max-w-md rounded-2xl p-6 sm:p-8">
+      <main className="page-wrap flex min-h-[calc(100svh-3.5rem)] items-center justify-center px-4 py-10 sm:min-h-[calc(100svh-4rem)] sm:py-16">
+        <div className="island-shell w-full max-w-md rounded-2xl p-6 sm:p-8">
           <Tabs value={mode} onValueChange={onModeChange} className="mb-0 gap-0">
             <TabsList aria-label="sign-in and sign-up" className="mb-6" variant="line">
               <TabsTrigger value="sign-in">Sign In</TabsTrigger>
