@@ -1,4 +1,4 @@
-import { createShareToken, isShareExpired, resolveShareExpiry } from "#/lib/share-link";
+import { isShareExpired, resolveShareExpiry } from "#/lib/share-link";
 import { describe, expect, it } from "vitest";
 
 describe("share-link helpers", () => {
@@ -45,11 +45,5 @@ describe("share-link helpers", () => {
     expect(isShareExpired(expiredAt, now)).toBe(true);
     expect(isShareExpired(validUntil, now)).toBe(false);
     expect(isShareExpired(null, now)).toBe(false);
-  });
-
-  it("generates strong tokens", () => {
-    const token = createShareToken();
-    expect(token).toHaveLength(64);
-    expect(token).toMatch(/^[a-f0-9]+$/);
   });
 });

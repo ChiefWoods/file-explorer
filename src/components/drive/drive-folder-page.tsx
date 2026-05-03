@@ -804,6 +804,10 @@ export function DriveFolderPage({
   }
 
   function handleOpenFolder(item: DriveItem & { type: "folder" }) {
+    if (!user) {
+      return;
+    }
+
     const nextPath = [...pathSegments, item.id].join("/");
     void queryClient
       .prefetchQuery({

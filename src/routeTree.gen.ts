@@ -14,7 +14,6 @@ import { Route as DriveLayoutRouteImport } from './routes/drive/_layout'
 import { Route as DriveLayoutIndexRouteImport } from './routes/drive/_layout/index'
 import { Route as DriveLayoutSharedRouteImport } from './routes/drive/_layout/shared'
 import { Route as DriveLayoutSplatRouteImport } from './routes/drive/_layout/$'
-import { Route as ApiShareTokenRouteImport } from './routes/api/share/$token'
 import { Route as ApiDriveUploadsRouteImport } from './routes/api/drive/uploads'
 import { Route as ApiDriveShareRouteImport } from './routes/api/drive/share'
 import { Route as ApiDriveListingRouteImport } from './routes/api/drive/listing'
@@ -48,11 +47,6 @@ const DriveLayoutSplatRoute = DriveLayoutSplatRouteImport.update({
   id: '/$',
   path: '/$',
   getParentRoute: () => DriveLayoutRoute,
-} as any)
-const ApiShareTokenRoute = ApiShareTokenRouteImport.update({
-  id: '/api/share/$token',
-  path: '/api/share/$token',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDriveUploadsRoute = ApiDriveUploadsRouteImport.update({
   id: '/api/drive/uploads',
@@ -103,7 +97,6 @@ export interface FileRoutesByFullPath {
   '/api/drive/listing': typeof ApiDriveListingRoute
   '/api/drive/share': typeof ApiDriveShareRouteWithChildren
   '/api/drive/uploads': typeof ApiDriveUploadsRoute
-  '/api/share/$token': typeof ApiShareTokenRoute
   '/drive/$': typeof DriveLayoutSplatRoute
   '/drive/shared': typeof DriveLayoutSharedRoute
   '/drive/': typeof DriveLayoutIndexRoute
@@ -118,7 +111,6 @@ export interface FileRoutesByTo {
   '/api/drive/listing': typeof ApiDriveListingRoute
   '/api/drive/share': typeof ApiDriveShareRouteWithChildren
   '/api/drive/uploads': typeof ApiDriveUploadsRoute
-  '/api/share/$token': typeof ApiShareTokenRoute
   '/drive/$': typeof DriveLayoutSplatRoute
   '/drive/shared': typeof DriveLayoutSharedRoute
   '/drive': typeof DriveLayoutIndexRoute
@@ -135,7 +127,6 @@ export interface FileRoutesById {
   '/api/drive/listing': typeof ApiDriveListingRoute
   '/api/drive/share': typeof ApiDriveShareRouteWithChildren
   '/api/drive/uploads': typeof ApiDriveUploadsRoute
-  '/api/share/$token': typeof ApiShareTokenRoute
   '/drive/_layout/$': typeof DriveLayoutSplatRoute
   '/drive/_layout/shared': typeof DriveLayoutSharedRoute
   '/drive/_layout/': typeof DriveLayoutIndexRoute
@@ -153,7 +144,6 @@ export interface FileRouteTypes {
     | '/api/drive/listing'
     | '/api/drive/share'
     | '/api/drive/uploads'
-    | '/api/share/$token'
     | '/drive/$'
     | '/drive/shared'
     | '/drive/'
@@ -168,7 +158,6 @@ export interface FileRouteTypes {
     | '/api/drive/listing'
     | '/api/drive/share'
     | '/api/drive/uploads'
-    | '/api/share/$token'
     | '/drive/$'
     | '/drive/shared'
     | '/drive'
@@ -184,7 +173,6 @@ export interface FileRouteTypes {
     | '/api/drive/listing'
     | '/api/drive/share'
     | '/api/drive/uploads'
-    | '/api/share/$token'
     | '/drive/_layout/$'
     | '/drive/_layout/shared'
     | '/drive/_layout/'
@@ -201,7 +189,6 @@ export interface RootRouteChildren {
   ApiDriveListingRoute: typeof ApiDriveListingRoute
   ApiDriveShareRoute: typeof ApiDriveShareRouteWithChildren
   ApiDriveUploadsRoute: typeof ApiDriveUploadsRoute
-  ApiShareTokenRoute: typeof ApiShareTokenRoute
   ApiDriveFilesFileIdRoute: typeof ApiDriveFilesFileIdRoute
 }
 
@@ -241,13 +228,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/drive/$'
       preLoaderRoute: typeof DriveLayoutSplatRouteImport
       parentRoute: typeof DriveLayoutRoute
-    }
-    '/api/share/$token': {
-      id: '/api/share/$token'
-      path: '/api/share/$token'
-      fullPath: '/api/share/$token'
-      preLoaderRoute: typeof ApiShareTokenRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/drive/uploads': {
       id: '/api/drive/uploads'
@@ -356,7 +336,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriveListingRoute: ApiDriveListingRoute,
   ApiDriveShareRoute: ApiDriveShareRouteWithChildren,
   ApiDriveUploadsRoute: ApiDriveUploadsRoute,
-  ApiShareTokenRoute: ApiShareTokenRoute,
   ApiDriveFilesFileIdRoute: ApiDriveFilesFileIdRoute,
 }
 export const routeTree = rootRouteImport

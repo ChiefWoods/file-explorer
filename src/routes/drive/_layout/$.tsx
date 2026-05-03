@@ -1,12 +1,14 @@
 import { DriveFolderPage } from "#/components/drive/drive-folder-page";
 import { ErrorPage } from "#/components/shared/error-page";
+import { loadDriveListing } from "#/lib/drive-listing.server-fns";
 import { getErrorCode, getFolderIdFromSplat, getPathSegmentsFromParams } from "#/lib/utils";
 import { Route as RootRoute } from "#/routes/__root";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Route as DriveLayoutRoute } from "../_layout";
-
 export const Route = createFileRoute("/drive/_layout/$")({
+  loader: async ({ params }) => {
+    return await loadDriveListing({ data: { folderId: getFolderIdFromSplat(params) } });
+  },
   component: RouteComponent,
   errorComponent: ({ error }) => {
     const code = getErrorCode(error);
@@ -18,7 +20,7 @@ export const Route = createFileRoute("/drive/_layout/$")({
 
 function RouteComponent() {
   const { user } = RootRoute.useRouteContext();
-  const listing = DriveLayoutRoute.useLoaderData();
+  const listing = Route.useLoaderData();
   const params = Route.useParams();
   const pathSegments = getPathSegmentsFromParams(params);
   const currentFolderId = getFolderIdFromSplat(params);

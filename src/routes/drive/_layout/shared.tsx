@@ -10,10 +10,10 @@ import {
   TableRow,
 } from "#/components/ui/table";
 import { prisma } from "#/lib/db";
-import { getFolderIdPath } from "#/lib/drive-repository";
 import { formatShortDate } from "#/lib/utils";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeaders } from "@tanstack/react-start/server";
 import { Copy, CopyCheck, Share2, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ type SharedLink = {
 const getSharedLinks = createServerFn({ method: "GET" })
   .inputValidator(z.object({ userId: z.string() }))
   .handler(async ({ data }): Promise<SharedLink[]> => {
+    const origin = getRequestHeaders().get("origin") ?? process.env.VITE_BASE_URL!;
     const links = await prisma.shareLink.findMany({
       where: {
         createdByUserId: data.userId,
@@ -46,19 +47,14 @@ const getSharedLinks = createServerFn({ method: "GET" })
       },
     });
 
-    return Promise.all(
-      links.map(async (link) => {
-        const folderPathIds = await getFolderIdPath(data.userId, link.folderId);
-        return {
-          id: link.id,
-          folderId: link.folderId,
-          folderName: link.folder.name,
-          createdAt: link.createdAt.toISOString(),
-          expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
-          url: `${process.env.VITE_BASE_URL!}/drive/${folderPathIds.join("/")}`,
-        };
-      }),
-    );
+    return links.map((link) => ({
+      id: link.id,
+      folderId: link.folderId,
+      folderName: link.folder.name,
+      createdAt: link.createdAt.toISOString(),
+      expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+      url: `${origin}/drive/${link.folderId}`,
+    }));
   });
 
 export const Route = createFileRoute("/drive/_layout/shared")({

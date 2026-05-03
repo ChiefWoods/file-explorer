@@ -1,7 +1,7 @@
 import { errorResponse, parseJsonBody } from "#/lib/api/http";
 import { requireAuthSession } from "#/lib/api/session";
 import { getUsedBytes, prisma } from "#/lib/db";
-import { getFolderIdPath, requireOwnedFolder } from "#/lib/drive-repository";
+import { requireOwnedFolder } from "#/lib/drive-repository";
 import { createShareLinkInputSchema, isShareExpired, resolveShareExpiry } from "#/lib/share-link";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
@@ -64,16 +64,6 @@ async function handleListShares(request: Request): Promise<Response> {
       getUsedBytes(session.user.id),
     ]);
 
-    const urlsByFolderId = new Map<string, string>();
-    await Promise.all(
-      links.map(async (link) => {
-        if (!urlsByFolderId.has(link.folderId)) {
-          const folderPathIds = await getFolderIdPath(session.user.id, link.folderId);
-          urlsByFolderId.set(link.folderId, buildPublicShareUrl(request, folderPathIds));
-        }
-      }),
-    );
-
     return Response.json({
       storageUsed: useBytes,
       links: links.map((link) => ({
@@ -83,7 +73,7 @@ async function handleListShares(request: Request): Promise<Response> {
         createdAt: link.createdAt,
         expiresAt: link.expiresAt,
         isExpired: isShareExpired(link.expiresAt),
-        url: urlsByFolderId.get(link.folderId) ?? buildPublicShareUrl(request, [link.folderId]),
+        url: buildPublicShareUrl(request, link.folderId),
       })),
     });
   } catch (error) {
@@ -122,12 +112,10 @@ async function handleCreateShareLink(request: Request): Promise<Response> {
       },
     });
 
-    const folderPathIds = await getFolderIdPath(session.user.id, link.folderId);
-
     return Response.json(
       {
         ...link,
-        url: buildPublicShareUrl(request, folderPathIds),
+        url: buildPublicShareUrl(request, link.folderId),
       },
       { status: 201 },
     );
@@ -136,7 +124,7 @@ async function handleCreateShareLink(request: Request): Promise<Response> {
   }
 }
 
-function buildPublicShareUrl(request: Request, folderPathIds: string[]): string {
+function buildPublicShareUrl(request: Request, folderId: string): string {
   const url = new URL(request.url);
-  return `${url.origin}/drive/${folderPathIds.join("/")}`;
+  return `${url.origin}/drive/${folderId}`;
 }

@@ -1,5 +1,4 @@
 import { SHARE_DURATION_PRESETS, type ShareDurationPreset } from "#/lib/share-duration";
-import { randomBytes } from "node:crypto";
 import { z } from "zod";
 
 // 24 hours * 60 minutes * 60 seconds * 1000 milliseconds
@@ -60,8 +59,4 @@ export function isShareExpired(expiresAt: Date | null, now = new Date()): boolea
     return false;
   }
   return expiresAt.getTime() <= now.getTime();
-}
-
-export function createShareToken(bytes = 32): string {
-  return randomBytes(bytes).toString("hex");
 }

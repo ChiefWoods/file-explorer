@@ -6,6 +6,5 @@ export const queryKeys = {
   },
   share: {
     links: (folderId: string | null = null) => ["share", "links", folderId ?? "all"] as const,
-    publicByToken: (token: string) => ["share", "public", token] as const,
   },
 } as const;
