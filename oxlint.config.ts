@@ -2,7 +2,13 @@ import { defineConfig } from "oxlint";
 
 export default defineConfig({
   $schema: "./node_modules/oxlint/configuration_schema.json",
-  ignorePatterns: ["dist", "src/routeTree.gen.ts", "src/components/ui/**"],
+  ignorePatterns: [
+    "dist",
+    "src/routeTree.gen.ts",
+    "src/components/ui/**",
+    ".output/**",
+    "generated/**",
+  ],
   jsPlugins: [
     {
       name: "tailwindcss",
