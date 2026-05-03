@@ -44,8 +44,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import ThemeToggle from "../ThemeToggle";
-
 type DriveSection = "my-drive" | "shared";
 
 type DriveSidebarProps = {
@@ -250,8 +248,6 @@ export function DriveSidebar({
       )}
 
       <div className="mt-auto flex flex-col gap-2.5 pt-2">
-        <ThemeToggle />
-
         <SidebarFooter className="flex flex-col gap-2.5 p-0">
           <SidebarMenu>
             <SidebarMenuItem>

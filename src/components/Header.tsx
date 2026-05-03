@@ -1,4 +1,3 @@
-import ThemeToggle from "#/components/ThemeToggle";
 import { Cloud } from "lucide-react";
 
 export default function Header() {
@@ -13,9 +12,6 @@ export default function Header() {
         <span className="min-w-0 truncate text-[17px] font-bold tracking-tight text-(--sea-ink) sm:text-[19px]">
           File Explorer
         </span>
-        <div className="ml-auto">
-          <ThemeToggle />
-        </div>
       </div>
     </header>
   );
