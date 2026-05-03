@@ -113,6 +113,52 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const storedMode = (() => {
+      try {
+        const value = window.localStorage.getItem("theme");
+        return value === "light" || value === "dark" || value === "auto" ? value : null;
+      } catch {
+        return null;
+      }
+    })();
+
+    const applyTheme = (mode: "light" | "dark" | "auto") => {
+      const resolved = mode === "auto" ? (media.matches ? "dark" : "light") : mode;
+
+      root.classList.remove("light", "dark");
+      root.classList.add(resolved);
+      root.style.colorScheme = resolved;
+
+      if (mode === "auto") {
+        root.removeAttribute("data-theme");
+      } else {
+        root.setAttribute("data-theme", mode);
+      }
+    };
+
+    if (storedMode === "light" || storedMode === "dark") {
+      applyTheme(storedMode);
+      return;
+    }
+
+    applyTheme("auto");
+
+    const onChange = () => {
+      applyTheme("auto");
+    };
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    }
+
+    media.addListener(onChange);
+    return () => media.removeListener(onChange);
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
