@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview --port 4000",
     "start": "bun .output/server/index.mjs",
-    "test": "vitest run",
+    "test": "bun test",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
