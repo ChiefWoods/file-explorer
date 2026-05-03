@@ -277,6 +277,7 @@ export function DriveFolderPage({
   const breadcrumbs = listing?.breadcrumbs ?? [];
   const activeFolderName = breadcrumbs.at(-1)?.name ?? null;
   const visibleBreadcrumbs = breadcrumbs.slice(1);
+  const isPublicViewer = !user;
 
   useEffect(() => {
     if (pathSegments.length === 0) {
@@ -286,7 +287,9 @@ export function DriveFolderPage({
     document.title = `${activeFolderName ?? "My Drive"} - File Uploader`;
   }, [activeFolderName, pathSegments.length]);
 
-  const title = (
+  const title = isPublicViewer ? (
+    <span className="text-lg font-bold text-(--sea-ink)">{activeFolderName ?? "Folder"}</span>
+  ) : (
     <Breadcrumb>
       <BreadcrumbList className="text-lg font-bold text-(--sea-ink-soft)">
         <BreadcrumbItem>

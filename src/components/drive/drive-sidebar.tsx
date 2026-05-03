@@ -92,7 +92,7 @@ export function DriveSidebar({
   const { isSigningOut, signOut } = useSignOut();
   const { session, user } = RootRoute.useRouteContext();
   const isAuthenticated = Boolean(session);
-  const isPublicSharedView = !isAuthenticated && location.pathname.startsWith("/drive/");
+  const isPublicSharedView = !isAuthenticated;
   const isDriveRootRoute = location.pathname === "/drive" || location.pathname === "/drive/";
   const activeSection: DriveSection = location.pathname.startsWith("/drive/shared")
     ? "shared"
