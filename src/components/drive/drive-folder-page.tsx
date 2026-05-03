@@ -66,9 +66,9 @@ import {
 import { Fragment, useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-type DriveItem = DriveItemRecord & { mimeType?: string; modifiedAtMs: number };
-type TypeFilterValue = "folders" | string;
-type AddedFilterValue =
+export type DriveItem = DriveItemRecord & { mimeType?: string; modifiedAtMs: number };
+export type TypeFilterValue = "folders" | string;
+export type AddedFilterValue =
   | "today"
   | "last-7-days"
   | "last-30-days"
@@ -146,6 +146,89 @@ function DriveItemIcon({ item }: { item: DriveItem }) {
 
 function isFolderItem(item: DriveItem): item is DriveItem & { type: "folder" } {
   return item.type === "folder";
+}
+
+export function matchesTypeFilterValue(
+  item: DriveItem,
+  typeFilter: TypeFilterValue | null,
+): boolean {
+  if (!typeFilter) {
+    return true;
+  }
+  if (typeFilter === "folders") {
+    return item.type === "folder";
+  }
+  if (item.type === "folder") {
+    return false;
+  }
+  return item.mimeType?.toLowerCase() === typeFilter.toLowerCase();
+}
+
+export function matchesAddedFilterValue(
+  item: DriveItem,
+  addedFilter: AddedFilterValue | null,
+  {
+    now = new Date(),
+    customAddedAfter,
+    customAddedBefore,
+  }: {
+    now?: Date;
+    customAddedAfter?: Date;
+    customAddedBefore?: Date;
+  } = {},
+): boolean {
+  if (!addedFilter) {
+    return true;
+  }
+
+  if (!Number.isFinite(item.modifiedAtMs)) {
+    return false;
+  }
+
+  const itemDate = new Date(item.modifiedAtMs);
+  const nowYear = now.getFullYear();
+  const itemYear = itemDate.getFullYear();
+
+  if (addedFilter === "this-year") {
+    return itemYear === nowYear;
+  }
+  if (addedFilter === "last-year") {
+    return itemYear === nowYear - 1;
+  }
+
+  if (addedFilter === "today") {
+    return (
+      itemYear === nowYear &&
+      itemDate.getMonth() === now.getMonth() &&
+      itemDate.getDate() === now.getDate()
+    );
+  }
+
+  if (addedFilter === "custom-range") {
+    const itemTime = itemDate.getTime();
+
+    if (customAddedAfter) {
+      const afterStart = new Date(customAddedAfter);
+      afterStart.setHours(0, 0, 0, 0);
+      if (itemTime < afterStart.getTime()) {
+        return false;
+      }
+    }
+
+    if (customAddedBefore) {
+      const beforeEnd = new Date(customAddedBefore);
+      beforeEnd.setHours(23, 59, 59, 999);
+      if (itemTime > beforeEnd.getTime()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  const lookbackDays = addedFilter === "last-7-days" ? 7 : 30;
+  const lookbackMs = lookbackDays * 24 * 60 * 60 * 1000;
+  return now.getTime() - item.modifiedAtMs <= lookbackMs;
 }
 
 export function DriveFolderPage({
@@ -824,72 +907,14 @@ export function DriveFolderPage({
   }
 
   function matchesTypeFilter(item: DriveItem): boolean {
-    if (!typeFilter) {
-      return true;
-    }
-    if (typeFilter === "folders") {
-      return item.type === "folder";
-    }
-    if (item.type === "folder") {
-      return false;
-    }
-    return item.mimeType?.toLowerCase() === typeFilter.toLowerCase();
+    return matchesTypeFilterValue(item, typeFilter);
   }
 
   function matchesAddedFilter(item: DriveItem): boolean {
-    if (!addedFilter) {
-      return true;
-    }
-
-    if (!Number.isFinite(item.modifiedAtMs)) {
-      return false;
-    }
-
-    const now = new Date();
-    const itemDate = new Date(item.modifiedAtMs);
-    const nowYear = now.getFullYear();
-    const itemYear = itemDate.getFullYear();
-
-    if (addedFilter === "this-year") {
-      return itemYear === nowYear;
-    }
-    if (addedFilter === "last-year") {
-      return itemYear === nowYear - 1;
-    }
-
-    if (addedFilter === "today") {
-      return (
-        itemYear === nowYear &&
-        itemDate.getMonth() === now.getMonth() &&
-        itemDate.getDate() === now.getDate()
-      );
-    }
-
-    if (addedFilter === "custom-range") {
-      const itemTime = itemDate.getTime();
-
-      if (customAddedAfter) {
-        const afterStart = new Date(customAddedAfter);
-        afterStart.setHours(0, 0, 0, 0);
-        if (itemTime < afterStart.getTime()) {
-          return false;
-        }
-      }
-
-      if (customAddedBefore) {
-        const beforeEnd = new Date(customAddedBefore);
-        beforeEnd.setHours(23, 59, 59, 999);
-        if (itemTime > beforeEnd.getTime()) {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    const lookbackDays = addedFilter === "last-7-days" ? 7 : 30;
-    const lookbackMs = lookbackDays * 24 * 60 * 60 * 1000;
-    return now.getTime() - item.modifiedAtMs <= lookbackMs;
+    return matchesAddedFilterValue(item, addedFilter, {
+      customAddedAfter,
+      customAddedBefore,
+    });
   }
 
   const filteredItems = useMemo(
