@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/drive/share")({
   },
 });
 
-async function handleListShares(request: Request): Promise<Response> {
+export async function handleListShares(request: Request): Promise<Response> {
   try {
     const session = await requireAuthSession(request);
     const url = new URL(request.url);
@@ -81,7 +81,7 @@ async function handleListShares(request: Request): Promise<Response> {
   }
 }
 
-async function handleCreateShareLink(request: Request): Promise<Response> {
+export async function handleCreateShareLink(request: Request): Promise<Response> {
   try {
     const session = await requireAuthSession(request);
     const body = await parseJsonBody(request, createShareLinkInputSchema);
@@ -124,7 +124,7 @@ async function handleCreateShareLink(request: Request): Promise<Response> {
   }
 }
 
-function buildPublicShareUrl(request: Request, folderId: string): string {
+export function buildPublicShareUrl(request: Request, folderId: string): string {
   const url = new URL(request.url);
   return `${url.origin}/drive/${folderId}`;
 }

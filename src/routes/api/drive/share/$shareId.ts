@@ -13,7 +13,7 @@ export const Route = createFileRoute("/api/drive/share/$shareId")({
   },
 });
 
-async function handleDeleteShareLink(
+export async function handleDeleteShareLink(
   request: Request,
   shareIdRaw: string | undefined,
 ): Promise<Response> {
@@ -47,7 +47,7 @@ async function handleDeleteShareLink(
   }
 }
 
-function parseShareId(shareId: string | undefined): string {
+export function parseShareId(shareId: string | undefined): string {
   if (!shareId) {
     throw new HttpError(400, "INVALID_SHARE_ID", "Missing shareId.");
   }

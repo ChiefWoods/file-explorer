@@ -37,7 +37,10 @@ export const Route = createFileRoute("/api/drive/files/$fileId")({
   },
 });
 
-async function handleGetFile(request: Request, fileIdRaw: string | undefined): Promise<Response> {
+export async function handleGetFile(
+  request: Request,
+  fileIdRaw: string | undefined,
+): Promise<Response> {
   try {
     const fileId = parseFileId(fileIdRaw);
     const session = await getOptionalAuthSession(request);
@@ -102,7 +105,7 @@ async function handleGetFile(request: Request, fileIdRaw: string | undefined): P
   }
 }
 
-async function handleUpdateFile(
+export async function handleUpdateFile(
   request: Request,
   fileIdRaw: string | undefined,
 ): Promise<Response> {
@@ -148,7 +151,7 @@ async function handleUpdateFile(
   }
 }
 
-async function handleDeleteFile(
+export async function handleDeleteFile(
   request: Request,
   fileIdRaw: string | undefined,
 ): Promise<Response> {
@@ -182,7 +185,7 @@ async function handleDeleteFile(
   }
 }
 
-function parseFileId(fileId: string | undefined): string {
+export function parseFileId(fileId: string | undefined): string {
   if (!fileId) {
     throw new HttpError(400, "INVALID_FILE_ID", "Missing fileId.");
   }

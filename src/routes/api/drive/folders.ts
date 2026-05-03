@@ -34,7 +34,7 @@ export const Route = createFileRoute("/api/drive/folders")({
   },
 });
 
-async function handleListFolders(request: Request): Promise<Response> {
+export async function handleListFolders(request: Request): Promise<Response> {
   try {
     const session = await requireAuthSession(request);
     const search = parseListSearch(new URL(request.url));
@@ -131,7 +131,7 @@ async function handleListFolders(request: Request): Promise<Response> {
   }
 }
 
-async function handleCreateFolder(request: Request): Promise<Response> {
+export async function handleCreateFolder(request: Request): Promise<Response> {
   try {
     const session = await requireAuthSession(request);
     const body = await parseJsonBody(request, createFolderBodySchema);
@@ -179,7 +179,7 @@ async function handleCreateFolder(request: Request): Promise<Response> {
   }
 }
 
-function parseListSearch(url: URL) {
+export function parseListSearch(url: URL) {
   return listFoldersSearchSchema.parse({
     folderId: url.searchParams.get("folderId") ?? undefined,
     fileType: url.searchParams.get("fileType") ?? undefined,
@@ -190,7 +190,7 @@ function parseListSearch(url: URL) {
   });
 }
 
-function parseOptionalDate(input: string | undefined, fieldName: string): Date | undefined {
+export function parseOptionalDate(input: string | undefined, fieldName: string): Date | undefined {
   if (!input) {
     return undefined;
   }
@@ -202,7 +202,7 @@ function parseOptionalDate(input: string | undefined, fieldName: string): Date |
   return parsed;
 }
 
-function resolveMimeFilter(
+export function resolveMimeFilter(
   fileType: string | undefined,
 ): { equals: string } | { startsWith: string } | undefined {
   if (!fileType) {

@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/drive/listing")({
   },
 });
 
-async function handleGetDriveListing(request: Request): Promise<Response> {
+export async function handleGetDriveListing(request: Request): Promise<Response> {
   try {
     const session = await getOptionalAuthSession(request);
     const { searchParams } = new URL(request.url);
@@ -122,7 +122,7 @@ async function handleGetDriveListing(request: Request): Promise<Response> {
   }
 }
 
-async function resolveFolderId(
+export async function resolveFolderId(
   folderIdParam: string | undefined,
   viewerUserId: string | undefined,
 ): Promise<string | undefined> {

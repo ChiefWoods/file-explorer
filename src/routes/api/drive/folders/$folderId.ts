@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/drive/folders/$folderId")({
   },
 });
 
-async function handleGetFolderDownload(
+export async function handleGetFolderDownload(
   request: Request,
   folderIdRaw: string | undefined,
 ): Promise<Response> {
@@ -95,7 +95,7 @@ async function handleGetFolderDownload(
   }
 }
 
-async function handleUpdateFolder(
+export async function handleUpdateFolder(
   request: Request,
   folderIdRaw: string | undefined,
 ): Promise<Response> {
@@ -152,7 +152,7 @@ async function handleUpdateFolder(
   }
 }
 
-async function handleDeleteFolder(
+export async function handleDeleteFolder(
   request: Request,
   folderIdRaw: string | undefined,
 ): Promise<Response> {
@@ -208,14 +208,17 @@ async function handleDeleteFolder(
   }
 }
 
-function parseFolderId(folderId: string | undefined): string {
+export function parseFolderId(folderId: string | undefined): string {
   if (!folderId) {
     throw new HttpError(400, "INVALID_FOLDER_ID", "Missing folderId.");
   }
   return folderId;
 }
 
-async function collectDescendantFolderIds(userId: string, folderId: string): Promise<string[]> {
+export async function collectDescendantFolderIds(
+  userId: string,
+  folderId: string,
+): Promise<string[]> {
   const allFolderIds = [folderId];
   let currentLevelIds = [folderId];
 
@@ -235,7 +238,7 @@ async function collectDescendantFolderIds(userId: string, folderId: string): Pro
   return allFolderIds;
 }
 
-function buildRelativeFolderPath(
+export function buildRelativeFolderPath(
   rootFolderId: string,
   fileFolderId: string,
   foldersById: Map<string, { id: string; name: string; parentId: string | null }>,

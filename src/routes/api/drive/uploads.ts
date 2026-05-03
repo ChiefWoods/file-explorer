@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/drive/uploads")({
   },
 });
 
-async function handleUploadFiles(request: Request): Promise<Response> {
+export async function handleUploadFiles(request: Request): Promise<Response> {
   const uploadedAssets: UploadedAsset[] = [];
 
   try {
@@ -150,14 +150,14 @@ async function handleUploadFiles(request: Request): Promise<Response> {
   }
 }
 
-function parseFolderId(value: FormDataEntryValue | null): string {
+export function parseFolderId(value: FormDataEntryValue | null): string {
   if (typeof value !== "string" || !value.trim()) {
     throw new HttpError(400, "INVALID_FOLDER_ID", "folderId is required.");
   }
   return value.trim();
 }
 
-async function resolveUploadFolderId(userId: string, folderId: string): Promise<string> {
+export async function resolveUploadFolderId(userId: string, folderId: string): Promise<string> {
   if (folderId === "root") {
     const rootFolder = await ensureUserRootFolder(userId);
     return rootFolder.id;
@@ -167,6 +167,6 @@ async function resolveUploadFolderId(userId: string, folderId: string): Promise<
   return folderId;
 }
 
-function isFile(entry: FormDataEntryValue): entry is File {
+export function isFile(entry: FormDataEntryValue): entry is File {
   return entry instanceof File;
 }
